@@ -8,9 +8,6 @@ class Grass(tile.Tile):
 	sprite_animation = loadAnimation("grass1.png")
 	counter = 0
 
-	def __init__(self):
-		print "python:", self.sprite_animation
-
 	def info(self):
 		print "grass %d" % self.counter
 		self.counter = self.counter + 1

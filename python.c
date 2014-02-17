@@ -75,8 +75,6 @@ py_get_tile(PyObject *py_obj)
 		t->animation_frame = py_get_int(PyDict_GetItemString(sprite_animation, "current_frame"));
 	}
 	t->walkable = py_get_int_decref(PyObject_GetAttrString(py_obj, "walkable"));
-	printf("id,frame,walkable: %d, %d, %d\n", t->animation_id,
-	    t->animation_frame, t->walkable);
 	return t;
 }
 
