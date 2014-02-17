@@ -6,12 +6,19 @@
 PyObject *main_module;
 PyObject *main_dict;
 
+adv_tile EMPTY_TILE = {
+	NULL, -1, 0, 0
+};
+
+
 PyObject *loadAnimation(PyObject *self, PyObject *args)
 {
 	const char *filename;
 	int animation_id = 0;
 
 	if (!PyArg_ParseTuple(args, "s", &filename)) {
+		printf("loadAnimation():\n");
+		PyErr_Print();
 		return NULL;
 	}
 
@@ -21,7 +28,7 @@ PyObject *loadAnimation(PyObject *self, PyObject *args)
 	PyDict_SetItemString(anim, "frames",
 	    Py_BuildValue("i", animation_get_n_frames(animation_id)));
 	PyDict_SetItemString(anim, "current_frame", Py_BuildValue("i", 0));
-	PyDict_SetItemString(anim, "__id__", Py_BuildValue("i", animation_id));
+	PyDict_SetItemString(anim, "id", Py_BuildValue("i", animation_id));
 
 	printf("loadAnimation(%s): %d!\n",filename, animation_id);
 	return anim;
@@ -34,6 +41,14 @@ static PyMethodDef methods[] = {
 
 int
 py_get_int(PyObject *obj)
+{
+	int intval;
+	intval = PyInt_AsLong(obj);
+	return intval;
+}
+
+static int
+py_get_int_decref(PyObject *obj)
 {
 	int intval;
 	intval = PyInt_AsLong(obj);
@@ -51,14 +66,17 @@ py_get_tile(PyObject *py_obj)
 
 	PyObject *sprite_animation;
 	sprite_animation = PyObject_GetAttrString(py_obj, "sprite_animation");
-	if (sprite_animation == NULL) {
+	if (sprite_animation == NULL || sprite_animation == Py_None) {
 		t->animation_id = -1;
+		t->animation_frame = 0;
 		PyErr_Print();
 	} else {
-		t->animation_id = py_get_int(PyDict_GetItemString(sprite_animation, "__id__"));
+		t->animation_id = py_get_int(PyDict_GetItemString(sprite_animation, "id"));
 		t->animation_frame = py_get_int(PyDict_GetItemString(sprite_animation, "current_frame"));
 	}
-	t->walkable = py_get_int(PyObject_GetAttrString(py_obj, "walkable"));
+	t->walkable = py_get_int_decref(PyObject_GetAttrString(py_obj, "walkable"));
+	printf("id,frame,walkable: %d, %d, %d\n", t->animation_id,
+	    t->animation_frame, t->walkable);
 	return t;
 }
 
@@ -104,6 +122,8 @@ python_generate_map(const char *map_name)
 	m->height = py_get_int(PyObject_GetAttrString(map_inst, "height"));
 	m->tiles = malloc(sizeof(adv_tile *) * m->width *  m->height);
 
+	printf("Map size: %d x %d\n", m->width, m->height);
+
 	PyObject *tile_list_row;
 	PyObject *py_tile;
 	adv_tile *tile;
@@ -134,7 +154,10 @@ python_generate_map(const char *map_name)
 				PyErr_Print();
 				return NULL;
 			}
-			tile = py_get_tile(py_tile);
+			if (py_tile == Py_None)
+				tile = &EMPTY_TILE;
+			else
+				tile = py_get_tile(py_tile);
 			m->tiles[y*m->width + x] = tile;
 		}
 	}
