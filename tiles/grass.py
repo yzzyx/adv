@@ -6,8 +6,10 @@ class Grass(tile.Tile):
 	"""Docstring for test. """
 
 	sprite_animation = loadAnimation("grass1.png")
-	print "Animation id: %d\n" % sprite_animation["__id__"]
 	counter = 0
+
+	def __init__(self):
+		print "python:", self.sprite_animation
 
 	def info(self):
 		print "grass %d" % self.counter

@@ -6,7 +6,7 @@ class Rock(tile.Tile):
 	"""Docstring for test. """
 
 	sprite_animation = loadAnimation("rock1.png")
-	print "Animation id: %d\n" % sprite_animation["__id__"]
+	walkable = 0
 
 	def playerEnter(self):
 		print "rock enter"
