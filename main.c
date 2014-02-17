@@ -39,12 +39,18 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	p = setup_player();
+	if ((p = setup_player()) == NULL) {
+		SDL_Quit();
+		return -1;
+	}
 
 	uint32_t ticks_last = 0;
 	int quit = 0;
+	uint32_t black = 0;
 	SDL_Event event;
 	while(!quit) {
+		
+		SDL_FillRect(rs.screen, NULL, black);
 		render_map(m, p);
 		SDL_Flip(rs.screen);
 
@@ -66,10 +72,10 @@ int main(int argc, char *argv[])
 
 
 			uint8_t *keystate = SDL_GetKeyState(NULL);
-			if (keystate[SDLK_UP]) p->movement_y = -1;
-			if (keystate[SDLK_DOWN]) p->movement_y = +1;
-			if (keystate[SDLK_LEFT]) p->movement_x = -1;
-			if (keystate[SDLK_RIGHT]) p->movement_x = +1;
+			if (keystate[SDLK_UP] && p->in_movement == 0) p->movement_y = -1;
+			if (keystate[SDLK_DOWN] && p->in_movement == 0) p->movement_y = +1;
+			if (keystate[SDLK_LEFT] && p->in_movement == 0) p->movement_x = -1;
+			if (keystate[SDLK_RIGHT] && p->in_movement == 0) p->movement_x = +1;
 			if (keystate[SDLK_q]) quit++;
 			/*
 			if (p.y < 0) p.y = 0;

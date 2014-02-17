@@ -9,6 +9,7 @@ typedef struct t_player {
 	int movement_x;
 	int movement_y;
 	int xx, yy;
+	int in_movement;
 
 	int hp;
 	int mp;
