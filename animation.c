@@ -52,6 +52,7 @@ render_animation(int animation_id, int x, int y, int frame)
 {
 	SDL_Rect offset;
 
+	if (animation_id == -1) return 0;
 	offset.x = x;
 	offset.y = y;
 	return SDL_BlitSurface(animation_list[animation_id]->img,
