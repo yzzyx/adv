@@ -6,29 +6,29 @@ from tiles.rock import Rock
 
 class level1(map.Map):
 	tiles = [
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(),  Rock(),  Rock(),  Rock(),  Rock(),  Rock(),  Rock(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(),  Rock(),  Rock(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(),  Rock(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(),  Rock(), Grass(),  Rock(),  Rock(),  Rock(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(),  Rock(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(),  Rock(),  Rock(),  Rock(),  Rock(),  Rock(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(),  Rock(),  Rock(),  Rock(),  Rock(),  Rock(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
-			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass() ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(),  Rock(),  Rock(),  Rock(),  Rock(),  Rock(),  Rock(), Grass(), Grass(), Grass(), Grass(),  Rock(),  Rock(),  Rock(),  Rock(),  Rock(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Rock()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(),  Rock(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(), Grass(),  Rock(),  Rock(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(),  Rock(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(),  Rock(), Grass(),  Rock(),  Rock(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(), Grass(),  Rock(),  Rock(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(),  Rock(),  Rock(),  Rock(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(),  Rock(),  Rock(),  Rock(),  Rock(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(),  Rock(),  Rock(),  Rock(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(),  Rock(),  Rock(),  Rock(),  Rock(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(),  Rock(),  Rock(),  Rock(),  Rock(),  Rock(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
+			[ Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass(), Grass()  ],
 			]
 	"""
 	tiles = [ [ Grass(), Grass(), Grass(), Grass() ],
@@ -43,8 +43,8 @@ class level1(map.Map):
 			  [ Grass(), Grass(), Grass(), Grass() ],
 			  ]
 	"""
-	width = 10
-	height = 22
+	width = 24
+	height = 23
 
 	def generate(self):
 		pass

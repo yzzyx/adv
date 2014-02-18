@@ -3,7 +3,7 @@
 import monster
 
 class Player(monster.Monster):
-	x = 3
-	y = 3
+	x = 1
+	y = 8
 	speed = 3
 	sprite_animation = loadAnimation("player1.png")

@@ -2,6 +2,7 @@
 #include <SDL/SDL_image.h>
 #include <SDL/SDL_ttf.h>
 #include "common.h"
+#include "animation.h"
 
 #define FRAMES_PER_SECOND 60
 
@@ -48,8 +49,32 @@ int setup_sdl(int argc, char* args[])
 	}
 	*/
 
-
 	SDL_WM_SetCaption("Adv", NULL);
+
+	/* Create a 32-bit surface with the bytes of each pixel in R,G,B,A order,
+	   as expected by OpenGL for textures */
+	Uint32 rmask, gmask, bmask, amask;
+
+	/* SDL interprets each pixel as a 32-bit number, so our masks must depend
+	   on the endianness (byte order) of the machine */
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+	rmask = 0xff000000;
+	gmask = 0x00ff0000;
+	bmask = 0x0000ff00;
+	amask = 0x000000ff;
+#else
+	rmask = 0x000000ff;
+	gmask = 0x0000ff00;
+	bmask = 0x00ff0000;
+	amask = 0xff000000;
+#endif
+
+	rs.map_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, rs.screen->w + FRAME_WIDTH, rs.screen->h + FRAME_HEIGHT, 32,
+	    rmask, gmask, bmask, amask);
+	if(rs.map_surface == NULL) {
+		fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
+		return -1;
+	}
 	return 0;
 
 /*	rs.base_font = TTF_OpenFont("font.ttf", 28);

@@ -17,6 +17,7 @@
 
 typedef struct t_render_space {
 	SDL_Surface *screen;
+	SDL_Surface *map_surface;
 	TTF_Font *base_font;
 }render_space;
 

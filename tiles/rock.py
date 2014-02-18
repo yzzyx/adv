@@ -1,4 +1,4 @@
-!/usr/bin/python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 import tile
 
@@ -7,6 +7,7 @@ class Rock(tile.Tile):
 
 	sprite_animation = loadAnimation("rock1.png")
 	walkable = 0
+	visibility = 0
 
 	def playerEnter(self):
 		print "rock enter"
