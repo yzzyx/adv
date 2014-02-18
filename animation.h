@@ -19,6 +19,7 @@ extern animation **animation_list;
 int setup_animation();
 int load_animation(const char *filename);
 int render_animation(int animation_id, int x, int y, int frame);
+int render_animation_full(int animation_id, int frame, int x, int y, SDL_Surface *surface);
 int animation_get_n_frames(int animation_id);
 
 

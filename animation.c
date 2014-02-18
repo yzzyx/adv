@@ -59,6 +59,18 @@ render_animation(int animation_id, int x, int y, int frame)
 	    &(animation_list[animation_id]->clips[frame]), rs.screen, &offset);
 }
 
+int render_animation_full(int animation_id, int frame, int x, int y, SDL_Surface *surface)
+{
+	SDL_Rect offset;
+
+	if (animation_id == -1) return 0;
+	offset.x = x;
+	offset.y = y;
+	return SDL_BlitSurface(animation_list[animation_id]->img,
+	    &(animation_list[animation_id]->clips[frame]), surface, &offset);
+
+}
+
 int animation_get_n_frames(int animation_id)
 {
 	return(animation_list[animation_id]->frames);
