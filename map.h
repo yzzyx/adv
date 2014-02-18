@@ -9,6 +9,7 @@ typedef struct t_adv_tile {
 	int animation_frame;
 
 	int walkable;
+	int visibility;
 }adv_tile;
 
 typedef struct t_adv_map {

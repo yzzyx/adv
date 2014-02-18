@@ -23,6 +23,69 @@ map_to_screen_y(adv_map *m, int y)
 	return sy;
 }
 
+static int
+map_pos_is_visible(adv_map *m, player *p, int map_x, int map_y)
+{
+	int dx = 0, dy = 0;
+	int x,y;
+	int sx, sy;
+	int err;
+	
+	dx = abs(p->tile_x-map_x);
+	dy = abs(p->tile_y-map_y);
+	if (map_x < p->tile_x) sx = 1; else sx = -1;
+	if (map_y < p->tile_y) sy = 1; else sy = -1;
+	err = dx-dy;
+	x = map_x;
+	y = map_y;
+
+	for(;;) {
+		if (m->tiles[x+y*m->width]->visibility == 0) {
+			if (!(x == map_x && y == map_y))
+				return 0;
+		}
+
+		if (x == p->tile_x && y == p->tile_y)
+			break;
+		int e2 = 2 * err;
+		if (e2 > -dy) {
+			err = err - dy;
+			x += sx;
+		}
+		if (x == p->tile_x && y == p->tile_y) {
+//			if (m->tiles[x+y*m->width]->visibility == 0)
+//				return 0;
+			break;
+		}
+		if (e2 < dx) {
+			err = err + dx;
+			y += sy;
+		}
+	}
+
+
+
+	/*j
+	if (p->tile_x > map_x) dx = 1;
+	else if (p->tile_x < map_x) dx = -1;
+
+	if (p->tile_y > map_y) dy = 1;
+	else if (p->tile_y < map_y) dy = -1;
+
+	x = map_x * FRAME_WIDTH;
+	y = map_y * FRAME_HEIGHT;
+
+	while (x != p->tile_x  || y != p->tile_y) {
+		if (x != map_x && y != map_y &&
+		    m->tiles[x+y*m->width]->visibility == 0)
+			return 0;
+		if (x != p->tile_x) x += dx;
+		if (y != p->tile_y) y += dy;
+	}
+	*/
+	return 1;
+}
+
 int
 render_map(adv_map *m, player *p)
 {
@@ -118,7 +181,7 @@ render_map(adv_map *m, player *p)
 
 
 	/* Only blit if something changed */
-	if (start_y != prev_start_y || 
+	if (1 || start_y != prev_start_y || 
 	    start_x != prev_start_x ||
 	    end_y != prev_end_y ||
 	    end_x != prev_end_x ||
@@ -134,25 +197,39 @@ render_map(adv_map *m, player *p)
 
 		blit = 1;
 
+		map_pos_is_visible(m, p, 2, 2);
 		/* Clear whole map, we need to move it */
 		SDL_FillRect(rs.map_surface, NULL, 0);
 	}
 
+	/* Create a visibility-map */
+
+
 	/* Even if we're not blitting anything, we need to check if any of the
 	 * tiles are dirty
 	 */
+	SDL_Rect tile_rect;
+	tile_rect.w = FRAME_WIDTH;
+	tile_rect.h = FRAME_HEIGHT;
+
 	for(y = start_y; y < end_y; y ++) {
 		for(x = start_x; x < end_x; x ++) {
-			if (blit) // FIXME - check if dirty || m->tiles[x+y*m->width]->is_dirty) {
-				render_animation_full(m->tiles[x+y*m->width]->animation_id,
-				    m->tiles[x+y*m->width]->animation_frame,
-				    map_to_screen_x(m, x - start_x),
-				    map_to_screen_y(m, y - start_y),
-				    rs.map_surface);
+			if (1 || blit) { // FIXME - check if dirty || m->tiles[x+y*m->width]->is_dirty) {
+				if (!map_pos_is_visible(m,p,x,y)) {
+					tile_rect.x = map_to_screen_x(m, x - start_x);
+					tile_rect.y = map_to_screen_y(m, y - start_y);
+					SDL_FillRect(rs.map_surface, &tile_rect, 0);
+				} else {
+					render_animation_full(m->tiles[x+y*m->width]->animation_id,
+					    m->tiles[x+y*m->width]->animation_frame,
+					    map_to_screen_x(m, x - start_x),
+					    map_to_screen_y(m, y - start_y),
+					    rs.map_surface);
+				}
+			}
 		}
 	}
 
-	//printf("from %d,%d to %d,%d\n", start_x, start_y, end_x, end_y);
 	SDL_SetAlpha(rs.map_surface, 0, 0xFF);
 	SDL_BlitSurface(rs.map_surface, &clip, rs.screen, &screen_rect);
 
