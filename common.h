@@ -1,8 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
-#include "SDL/SDL.h"
-#include "SDL/SDL_image.h"
-#include "SDL/SDL_ttf.h"
+#include <SDL.h>
+#include <SDL_image.h>
 
 #define TILE_WIDTH 32
 #define TILE_HEIGHT 32
@@ -16,9 +15,10 @@
 #define FRAMES_PER_SECOND 60
 
 typedef struct t_render_space {
+	SDL_Window *win;
 	SDL_Surface *screen;
 	SDL_Surface *map_surface;
-	TTF_Font *base_font;
+	int fog_tile;
 }render_space;
 
 #endif /* end of include guard: COMMON_H */

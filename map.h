@@ -16,7 +16,12 @@ typedef struct t_adv_map {
 	PyObject *py_obj;
 	int width;
 	int height;
+
+	SDL_Surface *map_surface;
+	SDL_Surface *fog_surface;
 	adv_tile **tiles;
+
+	uint8_t *fog_map;
 	int render_start_x;
 	int render_start_y;
 }adv_map;

@@ -1,3 +1,5 @@
+#include <SDL.h>
+#include <SDL_image.h>
 #include <malloc.h>
 #include "animation.h"
 #include "sdl.h"
@@ -11,26 +13,30 @@ int setup_animation()
 	if (animation_list == NULL) {
 		return -1;
 	}
+
+	rs.fog_tile = load_animation("fog.png");
 	return 0;
 }
 
 int load_animation(const char *filename)
 {
 	animation *anim;
-	SDL_Surface *tmp;
 
 	anim = malloc(sizeof(animation));
 
-	anim->img = NULL;
-
-	tmp = IMG_Load(filename);
-	if (tmp == NULL) {
+	anim->img = IMG_Load(filename);
+	if (anim->img == NULL) {
 		return -1;
 	}
 
-	anim->img = SDL_DisplayFormatAlpha(tmp);
-	SDL_FreeSurface(tmp);
-
+	SDL_SetSurfaceBlendMode(anim->img, SDL_BLENDMODE_NONE);
+	printf("[%d] format: %d\n", animation_count, anim->img->format->format);
+	printf("[%d] BPP: %d\n", animation_count, anim->img->format->BitsPerPixel);
+	printf("[%d] ByPP: %d\n", animation_count, anim->img->format->BytesPerPixel);
+	printf("[%d] RMask: %.8x\n", animation_count, anim->img->format->Rmask);
+	printf("[%d] GMask: %.8x\n", animation_count, anim->img->format->Gmask);
+	printf("[%d] BMask: %.8x\n", animation_count, anim->img->format->Bmask);
+	printf("[%d] AMask: %.8x\n", animation_count, anim->img->format->Amask);
 	anim->frames = anim->img->w / FRAME_WIDTH;
 	anim->clips = malloc(sizeof(SDL_Rect)*anim->frames);
 

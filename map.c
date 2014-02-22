@@ -107,6 +107,38 @@ render_map(adv_map *m, player *p)
 	SDL_Rect clip;
 	SDL_Rect screen_rect;
 
+	if (m->map_surface == NULL) {
+		m->map_surface = surface_sdl(m->width * FRAME_WIDTH,
+		    m->height * FRAME_HEIGHT);
+		SDL_SetSurfaceBlendMode(m->map_surface, SDL_BLENDMODE_NONE);
+
+		for(x = 0; x < m->width; x ++) {
+			for(y = 0; y < m->height; y ++) {
+				render_animation_full(m->tiles[x+y*m->width]->animation_id,
+				    m->tiles[x+y*m->width]->animation_frame,
+				    map_to_screen_x(m, x),
+				    map_to_screen_y(m, y),
+				    m->map_surface);
+
+			}
+		}
+	}
+
+	if (m->fog_surface == NULL) {
+		m->fog_surface = surface_sdl(m->width * FRAME_WIDTH,
+		    m->height * FRAME_HEIGHT);
+//		SDL_SetColorKey(m->fog_surface, SDL_TRUE, 0);
+		printf("[fog] format: %d\n",  m->fog_surface->format->format);
+		printf("[fog] BPP: %d\n",  m->fog_surface->format->BitsPerPixel);
+		printf("[fog] ByPP: %d\n", m->fog_surface->format->BytesPerPixel);
+		printf("[fog] RMask: %.8x\n",  m->fog_surface->format->Rmask);
+		printf("[fog] GMask: %.8x\n",  m->fog_surface->format->Gmask);
+		printf("[fog] BMask: %.8x\n",  m->fog_surface->format->Bmask);
+		printf("[fog] AMask: %.8x\n",  m->fog_surface->format->Amask);
+
+		SDL_SetSurfaceBlendMode(m->fog_surface, SDL_BLENDMODE_BLEND);
+	}
+
 	clip.x = 0;
 	clip.y = 0;
 	clip.w = rs.screen->w;
@@ -180,13 +212,14 @@ render_map(adv_map *m, player *p)
 	}
 
 
+
 	/* Only blit if something changed */
 	if (1 || start_y != prev_start_y || 
 	    start_x != prev_start_x ||
 	    end_y != prev_end_y ||
 	    end_x != prev_end_x ||
 	    clip.x != prev_clip_x ||
-	    clip.y != prev_clip_x) {
+	    clip.y != prev_clip_y) {
 
 		prev_start_x = start_x;
 		prev_start_y = start_y;
@@ -197,13 +230,20 @@ render_map(adv_map *m, player *p)
 
 		blit = 1;
 
-		map_pos_is_visible(m, p, 2, 2);
+		/* Create a visibility-map */
+		SDL_FillRect(m->fog_surface, NULL, 0);
+		for (x = 0; x < m->width; x ++) {
+			for (y = 0; y < m->height; y ++) {
+				if (!map_pos_is_visible(m, p, x, y))
+					render_animation_full(rs.fog_tile,
+					    0,
+					    x * FRAME_WIDTH,
+					    y * FRAME_HEIGHT,
+					    m->fog_surface);
+			}
+		}
 		/* Clear whole map, we need to move it */
-		SDL_FillRect(rs.map_surface, NULL, 0);
 	}
-
-	/* Create a visibility-map */
-
 
 	/* Even if we're not blitting anything, we need to check if any of the
 	 * tiles are dirty
@@ -212,30 +252,17 @@ render_map(adv_map *m, player *p)
 	tile_rect.w = FRAME_WIDTH;
 	tile_rect.h = FRAME_HEIGHT;
 
-	for(y = start_y; y < end_y; y ++) {
-		for(x = start_x; x < end_x; x ++) {
-			if (1 || blit) { // FIXME - check if dirty || m->tiles[x+y*m->width]->is_dirty) {
-				if (!map_pos_is_visible(m,p,x,y)) {
-					tile_rect.x = map_to_screen_x(m, x - start_x);
-					tile_rect.y = map_to_screen_y(m, y - start_y);
-					SDL_FillRect(rs.map_surface, &tile_rect, 0);
-				} else {
-					render_animation_full(m->tiles[x+y*m->width]->animation_id,
-					    m->tiles[x+y*m->width]->animation_frame,
-					    map_to_screen_x(m, x - start_x),
-					    map_to_screen_y(m, y - start_y),
-					    rs.map_surface);
-				}
-			}
-		}
-	}
-
-	SDL_SetAlpha(rs.map_surface, 0, 0xFF);
-	SDL_BlitSurface(rs.map_surface, &clip, rs.screen, &screen_rect);
-
+	clip.x = start_x * FRAME_WIDTH;
+	clip.y = start_y * FRAME_HEIGHT;
+	clip.w = screen_width * FRAME_WIDTH;
+	clip.h = screen_height * FRAME_WIDTH;
+	SDL_BlitSurface(m->map_surface, &clip, rs.screen, &screen_rect);
+	SDL_BlitSurface(m->fog_surface, &clip, rs.screen, &screen_rect);
+	
 	render_animation(p->animation_id,
-	    map_to_screen_x(m, p->tile_x - start_x) + screen_rect.x + p->xx - clip.x,
-	    map_to_screen_y(m, p->tile_y - start_y) + screen_rect.y + p->yy - clip.y,
+	    map_to_screen_x(m, p->tile_x - start_x) + p->xx,
+	    map_to_screen_y(m, p->tile_y - start_y) + p->yy,
 	    p->animation_frame);
+	    
 	return 0;
 }

@@ -3,7 +3,8 @@
 #include "common.h"
 
 extern render_space rs;
-int setup_sdl(int argc, char* args[]);
+SDL_Surface *surface_sdl(int w, int h);
+int setup_sdl();
 
 #endif /* end of include guard: ADV_SDL_H */
 
