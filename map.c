@@ -86,15 +86,72 @@ map_pos_is_visible(adv_map *m, player *p, int map_x, int map_y)
 	return 1;
 }
 
+static int
+map_pos_is_visible2(adv_map *m, player *p, int map_x, int map_y)
+{
+	int dx = 0, dy = 0;
+	int x,y;
+	int sx, sy;
+	int err;
+	int px, py;
+	
+
+	px = p->xx + 16;
+	py = p->yy + 16;
+	dx = abs(px-map_x);
+	dy = abs(py-map_y);
+	if (map_x < px) sx = 1; else sx = -1;
+	if (map_y < py) sy = 1; else sy = -1;
+	err = dx-dy;
+	x = map_x;
+	y = map_y;
+
+	for(;;) {
+		int tx, ty;
+		tx = x / FRAME_WIDTH;
+		ty = y / FRAME_HEIGHT;
+		if (m->tiles[tx+ty*m->width]->visibility == 0) {
+			if (!(tx == map_x / FRAME_WIDTH && 
+				ty == map_y / FRAME_HEIGHT))
+				return 0;
+		}
+
+		if (x == px && y == py)
+			break;
+		int e2 = 2 * err;
+		if (e2 > -dy) {
+			err = err - dy;
+			x += sx;
+		}
+		if (x == px && y == py) {
+//			if (m->tiles[x+y*m->width]->visibility == 0)
+//				return 0;
+			break;
+		}
+		if (e2 < dx) {
+			err = err + dx;
+			y += sy;
+		}
+	}
+	return 1;
+}
+
+
+int
+generate_fog_map(adv_map *m, player *p)
+{
+	int fx, fy;
+
+
+
+	return 0;
+}
+
 int
 render_map(adv_map *m, player *p)
 {
-	static int prev_start_x = -1,
-		   prev_start_y = -1,
-		   prev_end_x = -1,
-		   prev_end_y = -1,
-		   prev_clip_x = -1,
-		   prev_clip_y = -1;
+	static int prev_x = -1,
+		   prev_y = -1;
 	int x, y;
 	int start_x, start_y;
 	int end_x, end_y;
@@ -137,6 +194,8 @@ render_map(adv_map *m, player *p)
 		printf("[fog] AMask: %.8x\n",  m->fog_surface->format->Amask);
 
 		SDL_SetSurfaceBlendMode(m->fog_surface, SDL_BLENDMODE_BLEND);
+
+		m->fog_map = malloc(m->width * m->height);
 	}
 
 	clip.x = 0;
@@ -144,7 +203,7 @@ render_map(adv_map *m, player *p)
 	clip.w = rs.screen->w;
 	clip.h = rs.screen->h;
 	memcpy(&screen_rect, &clip, sizeof(SDL_Rect));
-	int map_scroll_y = 0, map_scroll_x;
+	int map_scroll_y = 0, map_scroll_x = 0;
 
 	start_x = p->tile_x - screen_width / 2;
 	start_y = p->tile_y - screen_height / 2;
@@ -166,18 +225,10 @@ render_map(adv_map *m, player *p)
 			start_x = m->width - screen_width;
 		}
 
-		if(p->xx != 0 && p->tile_x == (start_x + screen_width / 2)) {
-			if (p->xx < 0 && start_x > 0) {
-				/* We have to scroll the map to the left */
-				start_x --;
-				end_x --;
-				map_scroll_x = p->xx;
-				clip.x = FRAME_WIDTH + map_scroll_x;
-			} else if (p->xx > 0 && end_x - p->tile_x  > screen_width / 2) {
-				/* We have to scroll the map to the right */
-				map_scroll_x = p->xx;
-				clip.x += map_scroll_x;
-			}
+		if(p->xx % FRAME_WIDTH > 0 &&
+		    p->tile_x == (start_x + screen_width / 2) &&
+		    m->width - p->tile_x > screen_width/2) {
+			map_scroll_x = p->xx - (start_x + screen_width/2) * FRAME_WIDTH;
 		}
 	}
 
@@ -196,53 +247,46 @@ render_map(adv_map *m, player *p)
 			start_y = m->height - screen_height;
 		}
 
-		if(p->yy != 0 && p->tile_y == (start_y + screen_height / 2)) {
-			if (p->yy < 0 && start_y > 0) {
-				/* We have to scroll the map up */
-				start_y --;
-				end_y --;
-				map_scroll_y = p->yy;
-				clip.y = FRAME_HEIGHT + map_scroll_y;
-			} else if (p->yy > 0 && end_y - p->tile_y  > screen_height / 2) {
-				/* We have to scroll the map down */
-				map_scroll_y = p->yy;
-				clip.y += map_scroll_y;
-			}
+		if(p->yy % FRAME_HEIGHT > 0 &&
+		    p->tile_y == (start_y + screen_height / 2) &&
+		    m->height - p->tile_y > screen_height/2 + 1) {
+			map_scroll_y = p->yy - (start_y + screen_height/2) * FRAME_WIDTH;
 		}
 	}
 
 
-
 	/* Only blit if something changed */
-	if (1 || start_y != prev_start_y || 
-	    start_x != prev_start_x ||
-	    end_y != prev_end_y ||
-	    end_x != prev_end_x ||
-	    clip.x != prev_clip_x ||
-	    clip.y != prev_clip_y) {
+	if (p->xx != prev_x || 
+	    p->yy != prev_y) {
 
-		prev_start_x = start_x;
-		prev_start_y = start_y;
-		prev_end_x = end_x;
-		prev_end_y = end_y;
-		prev_clip_x = clip.x;
-		prev_clip_y = clip.y;
+		prev_x = p->xx;
+		prev_y = p->yy;
 
 		blit = 1;
 
 		/* Create a visibility-map */
 		SDL_FillRect(m->fog_surface, NULL, 0);
-		for (x = 0; x < m->width; x ++) {
-			for (y = 0; y < m->height; y ++) {
-				if (!map_pos_is_visible(m, p, x, y))
-					render_animation_full(rs.fog_tile,
-					    0,
-					    x * FRAME_WIDTH,
-					    y * FRAME_HEIGHT,
+
+		memset(m->fog_map, 0, m->width * m->height);
+		for (x = start_x * FRAME_WIDTH; x < end_x * FRAME_WIDTH; x += 16) {
+			for (y = start_y * FRAME_HEIGHT; y < end_y *
+			    FRAME_HEIGHT; y += 16) {
+
+				if (m->fog_map[(x>>5) + (y>>5) * m->width] == 0 &&
+				   !map_pos_is_visible2(m, p, x, y)) {
+					render_animation_clipped(rs.fog_tile,
+					    0, x, y, 16, 16,
 					    m->fog_surface);
+				} else {
+					m->fog_map[(x>>5) + (y>>5) * m->width]= 1;
+					SDL_Rect r;
+					r.x = (x >> 5) * FRAME_WIDTH;
+					r.y = (y >> 5) * FRAME_HEIGHT;
+					r.w = 32; r.h = 32;
+					SDL_FillRect(m->fog_surface, &r, 0);
+				}
 			}
 		}
-		/* Clear whole map, we need to move it */
 	}
 
 	/* Even if we're not blitting anything, we need to check if any of the
@@ -252,16 +296,16 @@ render_map(adv_map *m, player *p)
 	tile_rect.w = FRAME_WIDTH;
 	tile_rect.h = FRAME_HEIGHT;
 
-	clip.x = start_x * FRAME_WIDTH;
-	clip.y = start_y * FRAME_HEIGHT;
+	clip.x = start_x * FRAME_WIDTH + map_scroll_x;
+	clip.y = start_y * FRAME_HEIGHT + map_scroll_y;
 	clip.w = screen_width * FRAME_WIDTH;
 	clip.h = screen_height * FRAME_WIDTH;
 	SDL_BlitSurface(m->map_surface, &clip, rs.screen, &screen_rect);
 	SDL_BlitSurface(m->fog_surface, &clip, rs.screen, &screen_rect);
 	
 	render_animation(p->animation_id,
-	    map_to_screen_x(m, p->tile_x - start_x) + p->xx,
-	    map_to_screen_y(m, p->tile_y - start_y) + p->yy,
+	    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
+	    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y,
 	    p->animation_frame);
 	    
 	return 0;

@@ -77,6 +77,24 @@ int render_animation_full(int animation_id, int frame, int x, int y, SDL_Surface
 
 }
 
+int render_animation_clipped(int animation_id, int frame, int x, int y, int w, int h, SDL_Surface *surface)
+{
+	SDL_Rect offset;
+	SDL_Rect clip;
+
+	if (animation_id == -1) return 0;
+	offset.x = x;
+	offset.y = y;
+
+	memcpy(&clip, &(animation_list[animation_id]->clips[frame]),
+	    sizeof(SDL_Rect));
+	clip.w = w;
+	clip.h = h;
+	
+	return SDL_BlitSurface(animation_list[animation_id]->img, &clip, surface, &offset);
+}
+
+
 int animation_get_n_frames(int animation_id)
 {
 	return(animation_list[animation_id]->frames);
