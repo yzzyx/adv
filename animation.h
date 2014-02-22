@@ -18,6 +18,7 @@ typedef struct t_animation {
 extern animation **animation_list;
 int setup_animation();
 int load_animation(const char *filename);
+int set_animation_blendmode(int animation_id, int blendmode);
 int render_animation(int animation_id, int x, int y, int frame);
 int render_animation_full(int animation_id, int frame, int x, int y, SDL_Surface *surface);
 int render_animation_clipped(int animation_id, int frame, int x, int y, int w, int h, SDL_Surface *surface);

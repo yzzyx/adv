@@ -4,7 +4,6 @@
 #include "common.h"
 #include "map.h"
 
-int move_player_cnt = 0;
 #define TICK_LENGTH 3
 
 /*

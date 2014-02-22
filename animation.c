@@ -18,6 +18,12 @@ int setup_animation()
 	return 0;
 }
 
+int set_animation_blendmode(int animation_id, int blendmode)
+{
+	return SDL_SetSurfaceBlendMode(animation_list[animation_id]->img,
+	    blendmode);
+}
+
 int load_animation(const char *filename)
 {
 	animation *anim;

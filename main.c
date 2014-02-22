@@ -4,8 +4,6 @@
 #include "player.h"
 #include "python.h"
 
-extern int move_player_cnt;
-
 int main(int argc, char *argv[])
 {
 	player *p;
@@ -32,16 +30,12 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	p->xx = p->tile_x * FRAME_WIDTH;
-	p->yy = p->tile_y * FRAME_HEIGHT;
-
 	uint32_t ticks_last = 0;
 	int quit = 0;
 	SDL_Event event;
 
-	render_map(m, p);
-	SDL_UpdateWindowSurface(rs.win);
-
+//	SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_ALPHA);
+//	render_animation_full(2,0,0,0,surface);
 	while(!quit) {
 		
 		/*
@@ -54,10 +48,8 @@ int main(int argc, char *argv[])
 
 		*/
 		//render_animation_full(rs.fog_tile, 0, 0, 0, rs.screen);
-		if (move_player(m, p)) {
-			render_map(m, p);
-			SDL_UpdateWindowSurface(rs.win);
-		}
+		render_map(m, p);
+		SDL_UpdateWindowSurface(rs.win);
 
 		//If we want to cap the frame rate
 		if ((SDL_GetTicks()<  1000 / FRAMES_PER_SECOND)) {
@@ -75,6 +67,7 @@ int main(int argc, char *argv[])
 		if (1 || t - ticks_last > TICK_TIMEOUT) {
 			ticks_last = t;
 
+
 			const uint8_t *keystate = SDL_GetKeyboardState(NULL);
 			if (keystate[SDL_SCANCODE_UP] && p->in_movement == 0) p->movement_y = -1;
 			if (keystate[SDL_SCANCODE_DOWN] && p->in_movement == 0) p->movement_y = +1;
@@ -87,10 +80,10 @@ int main(int argc, char *argv[])
 			if (p.x < 0) p.x = 0;
 			if (p.x >= m->width) p.x = m->width - 1;
 			*/
+			move_player(m, p);
 		}
 	}
 
-	printf("cnt: %d\n", move_player_cnt);
 	SDL_Quit();
 	return 0;
 
