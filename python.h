@@ -3,12 +3,13 @@
 #include <Python.h>
 #include "map.h"
 
-typedef struct t_adv_map adv_map;
+typedef struct t_adv_tile adv_tile;
 extern PyObject *main_dict;
 
 int py_get_int(PyObject *obj);
+int py_get_int_decref(PyObject *obj);
 int setup_python(int argc, char *argv[]);
-adv_map *python_generate_map(const char *map_name);
+adv_tile *py_get_tile(PyObject *py_obj);
 
 #endif /* end of include guard: ADV_PYTHON_H */
 

@@ -73,22 +73,25 @@ setup_player()
  * Check for collision
  */
 int
-player_map_is_walkable(player *p, adv_map *m)
+player_map_is_walkable(player *p)
 {
 	int tx, ty;
 	int min_x, min_y, max_x, max_y;
+
+	adv_map *m;
+	m = p->map;
 
 	min_x = p->xx / FRAME_WIDTH;
 	min_y = p->yy / FRAME_WIDTH;
 
 	max_x = min_x + (((p->xx % FRAME_WIDTH) > 0) ? 1:0);
 	max_y = min_y + (((p->yy % FRAME_WIDTH) > 0) ? 1:0);
-	if (max_x >= m->width) max_x = m->width - 1;
-	if (max_y >= m->height) max_y = m->height - 1;
+	if (max_x >= p->map->width) max_x = p->map->width - 1;
+	if (max_y >= p->map->height) max_y = p->map->height - 1;
 
 	for (tx = min_x; tx <= max_x; tx ++) {
 		for (ty = min_y; ty <= max_y; ty ++) {
-			if (!m->tiles[tx+ty*m->width]->walkable)
+			if (!p->map->tiles[tx+ty*p->map->width]->walkable)
 				return 0;
 		}
 	}
@@ -101,7 +104,7 @@ player_map_is_walkable(player *p, adv_map *m)
  *
  * called each tick, updating the player's position
  */
-int move_player(adv_map *m, player *p)
+int move_player(player *p)
 {
 	int new_tile = 0;
 	int prev_x, prev_y;
@@ -113,11 +116,9 @@ int move_player(adv_map *m, player *p)
 	prev_tile_x = p->tile_x;
 	prev_tile_y = p->tile_y;
 
-
 	if (p->movement_x == 0 && p->movement_y == 0)
 		return 0;
 
-	move_player_cnt ++;
 	p->in_movement = 1;
 
 	int i;
@@ -130,14 +131,14 @@ int move_player(adv_map *m, player *p)
 
 
 		if (p->xx < 0) p->xx = 0;
-		else if (p->xx > (m->width-1)*FRAME_WIDTH)
-			p->xx = (m->width-1)*FRAME_WIDTH;
+		else if (p->xx > (p->map->width-1)*FRAME_WIDTH)
+			p->xx = (p->map->width-1)*FRAME_WIDTH;
 
 		if (p->yy < 0) p->yy = 0;
-		else if (p->yy > (m->height-1)*FRAME_HEIGHT)
-			p->yy = (m->height-1)*FRAME_HEIGHT;
+		else if (p->yy > (p->map->height-1)*FRAME_HEIGHT)
+			p->yy = (p->map->height-1)*FRAME_HEIGHT;
 
-		if (!player_map_is_walkable(p, m)) {
+		if (!player_map_is_walkable(p)) {
 			p->xx = prev_x;
 			p->yy = prev_y;
 			p->movement_x = 0;
@@ -164,13 +165,13 @@ int move_player(adv_map *m, player *p)
 		/* Call playerExit-method on tile we're leaving*/
 		PyObject *tmp;
 		tmp = PyObject_CallMethod(
-		    m->tiles[prev_tile_x + prev_tile_y * m->width]->py_obj,
+		    p->map->tiles[prev_tile_x + prev_tile_y * p->map->width]->py_obj,
 		    "playerExit", "", NULL);
 		if (tmp == NULL) { PyErr_Print(); return -1; }
 		Py_DECREF(tmp);
 
 		/* Call playerEnter-method on tile we're entering*/
-		tmp = PyObject_CallMethod(m->tiles[p->tile_x + p->tile_y * m->width]->py_obj,
+		tmp = PyObject_CallMethod(p->map->tiles[p->tile_x + p->tile_y * p->map->width]->py_obj,
 		    "playerEnter", "", NULL);
 		if (tmp == NULL) { PyErr_Print(); return -1; }
 		Py_DECREF(tmp);

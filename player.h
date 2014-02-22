@@ -2,6 +2,7 @@
 #define PLAYER_H
 #include "python.h"
 
+typedef struct t_adv_map adv_map;
 typedef struct t_player {
 	int tile_x;
 	int tile_y;
@@ -17,13 +18,16 @@ typedef struct t_player {
 	int animation_id;
 	int animation_frame;
 
+	adv_map *map;
 	PyObject *py_obj;
 }player;
 
 typedef struct t_adv_map adv_map;
 
 player *setup_player();
-int move_player(adv_map *m, player *p);
+int move_player(player *p);
+
+int monster_gotoPos_C(player *p);
 
 #endif /* end of include guard: PLAYER_H */
 

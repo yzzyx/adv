@@ -1,6 +1,7 @@
 #ifndef MAP_H
 #define MAP_H
 #include <Python.h>
+#include <SDL.h>
 #include "player.h"
 
 typedef struct t_adv_tile {
@@ -28,6 +29,7 @@ typedef struct t_adv_map {
 
 
 typedef struct t_player player;
+adv_map *get_map(const char *map_name);
 int render_map(adv_map *m, player *p);
 
 #endif /* end of include guard: MAP_H */

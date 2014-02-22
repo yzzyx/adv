@@ -1,7 +1,102 @@
+#include <Python.h>
+#include "python.h"
 #include "animation.h"
 #include "map.h"
 #include "player.h"
 #include "sdl.h"
+
+#define USE_FOG 0
+int map_count = 0;
+
+adv_tile EMPTY_TILE = {
+	NULL, -1, 0, 0, 0
+};
+
+
+adv_map *
+get_map(const char *map_name)
+{
+	adv_map *m;
+
+	PyObject *map_def, *map_inst;
+	PyObject *tile_list;
+	PyObject *tmp;
+
+	PyObject *module = PyDict_GetItemString(main_dict, map_name);
+	if (module == NULL) {
+		PyErr_Print();
+		return NULL;
+	}
+	if ((map_def = PyObject_GetAttrString(module, map_name)) == NULL) {
+		PyErr_Print();
+		return NULL;
+	}
+
+	if ((map_inst = PyObject_CallObject(map_def, NULL)) == NULL) {
+		PyErr_Print();
+		return NULL;
+	}
+
+	tmp = PyObject_CallMethod(map_inst, "generate", "", NULL);
+	if (tmp == NULL) {
+		printf("callmethod(generate):");
+		PyErr_Print();
+		return NULL;
+	} else 
+		Py_DECREF(tmp);
+
+	m = malloc(sizeof(adv_map));
+	memset(m, 0, sizeof(adv_map));
+
+	m->py_obj = map_inst;
+	m->render_start_x = 0;
+	m->render_start_y = 0;
+	m->width = py_get_int(PyObject_GetAttrString(map_inst, "width"));
+	m->height = py_get_int(PyObject_GetAttrString(map_inst, "height"));
+	m->tiles = malloc(sizeof(adv_tile *) * m->width *  m->height);
+
+	printf("Map size: %d x %d\n", m->width, m->height);
+	printf("tiles = %p\n", m->tiles);
+
+	PyObject *tile_list_row;
+	PyObject *py_tile;
+	adv_tile *tile;
+
+	tile_list = PyObject_GetAttrString(map_inst, "tiles");
+	if (tile_list == NULL) {
+		PyErr_Print();
+		free(m);
+		return NULL;
+	}
+
+	int x, y;
+	for (y = 0; y < m->height; y ++) {
+		tile_list_row  = PyList_GetItem(tile_list, y);
+		if (tile_list_row == NULL) {
+			PyErr_Print();
+			free(m);
+			return NULL;
+		}
+
+		for (x = 0; x < m->width; x ++) {
+			py_tile = PyList_GetItem(tile_list_row, x);
+			if (py_tile == NULL) {
+				printf("tile_list[%d][%d]:", y, x);
+				PyErr_Print();
+				free(m);
+				return NULL;
+			}
+			if (py_tile == Py_None)
+				tile = &EMPTY_TILE;
+			else
+				tile = py_get_tile(py_tile);
+			m->tiles[y*m->width + x] = tile;
+		}
+	}
+
+	return m;
+}
+
 
 static int 
 map_to_screen_x(adv_map *m, int x)
@@ -138,16 +233,6 @@ map_pos_is_visible2(adv_map *m, player *p, int map_x, int map_y)
 
 
 int
-generate_fog_map(adv_map *m, player *p)
-{
-	int fx, fy;
-
-
-
-	return 0;
-}
-
-int
 render_map(adv_map *m, player *p)
 {
 	static int prev_x = -1,
@@ -263,6 +348,7 @@ render_map(adv_map *m, player *p)
 		prev_y = p->yy;
 
 		blit = 1;
+#if USE_FOG
 
 		/* Create a visibility-map */
 		SDL_FillRect(m->fog_surface, NULL, 0);
@@ -287,6 +373,7 @@ render_map(adv_map *m, player *p)
 				}
 			}
 		}
+#endif
 	}
 
 	/* Even if we're not blitting anything, we need to check if any of the
@@ -301,7 +388,9 @@ render_map(adv_map *m, player *p)
 	clip.w = screen_width * FRAME_WIDTH;
 	clip.h = screen_height * FRAME_WIDTH;
 	SDL_BlitSurface(m->map_surface, &clip, rs.screen, &screen_rect);
+#if USE_FOG
 	SDL_BlitSurface(m->fog_surface, &clip, rs.screen, &screen_rect);
+#endif
 	
 	render_animation(p->animation_id,
 	    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,

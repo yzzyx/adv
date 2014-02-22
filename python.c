@@ -6,10 +6,6 @@
 PyObject *main_module;
 PyObject *main_dict;
 
-adv_tile EMPTY_TILE = {
-	NULL, -1, 0, 0, 0
-};
-
 
 PyObject *loadAnimation(PyObject *self, PyObject *args)
 {
@@ -36,8 +32,10 @@ PyObject *loadAnimation(PyObject *self, PyObject *args)
 
 static PyMethodDef methods[] = {
     {"loadAnimation", loadAnimation, METH_VARARGS, "loadAnimation" },
+//    {"gotoPosition", monster_gotoPosition, METH_VARARGS, "gotoPosition" },
     {NULL, NULL, 0, NULL}
 };
+
 
 int
 py_get_int(PyObject *obj)
@@ -47,7 +45,7 @@ py_get_int(PyObject *obj)
 	return intval;
 }
 
-static int
+int
 py_get_int_decref(PyObject *obj)
 {
 	int intval;
@@ -77,92 +75,6 @@ py_get_tile(PyObject *py_obj)
 	t->walkable = py_get_int_decref(PyObject_GetAttrString(py_obj, "walkable"));
 	t->visibility = py_get_int_decref(PyObject_GetAttrString(py_obj, "visibility"));
 	return t;
-}
-
-adv_map *
-python_generate_map(const char *map_name)
-{
-	adv_map *m;
-
-	PyObject *map_def, *map_inst;
-	PyObject *tile_list;
-	PyObject *tmp;
-
-	printf("generating map\n");
-	PyObject *module = PyDict_GetItemString(main_dict, map_name);
-	if (module == NULL) {
-		PyErr_Print();
-		return NULL;
-	}
-	if ((map_def = PyObject_GetAttrString(module, map_name)) == NULL) {
-		PyErr_Print();
-		return NULL;
-	}
-
-	if ((map_inst = PyObject_CallObject(map_def, NULL)) == NULL) {
-		PyErr_Print();
-		return NULL;
-	}
-
-	tmp = PyObject_CallMethod(map_inst, "generate", "", NULL);
-	if (tmp == NULL) {
-		printf("callmethod(generate):");
-		PyErr_Print();
-		return NULL;
-	} else 
-		Py_DECREF(tmp);
-
-	m = malloc(sizeof(adv_map));
-	memset(m, 0, sizeof(adv_map));
-
-	m->py_obj = map_inst;
-	m->render_start_x = 0;
-	m->render_start_y = 0;
-	m->width = py_get_int(PyObject_GetAttrString(map_inst, "width"));
-	m->height = py_get_int(PyObject_GetAttrString(map_inst, "height"));
-	m->tiles = malloc(sizeof(adv_tile *) * m->width *  m->height);
-
-	printf("Map size: %d x %d\n", m->width, m->height);
-	printf("tiles = %p\n", m->tiles);
-
-	PyObject *tile_list_row;
-	PyObject *py_tile;
-	adv_tile *tile;
-
-	tile_list = PyObject_GetAttrString(map_inst, "tiles");
-	if (tile_list == NULL) {
-		PyErr_Print();
-		return NULL;
-	}
-
-	if (PyList_Check(tile_list))
-		printf("tile_list is a list!\n");
-	else
-		printf("tile_list is NOT a list!\n");
-
-	int x, y;
-	for (y = 0; y < m->height; y ++) {
-		tile_list_row  = PyList_GetItem(tile_list, y);
-		if (tile_list_row == NULL) {
-			PyErr_Print();
-			return NULL;
-		}
-
-		for (x = 0; x < m->width; x ++) {
-			py_tile = PyList_GetItem(tile_list_row, x);
-			if (py_tile == NULL) {
-				printf("tile_list[%d][%d]:", y, x);
-				PyErr_Print();
-				return NULL;
-			}
-			if (py_tile == Py_None)
-				tile = &EMPTY_TILE;
-			else
-				tile = py_get_tile(py_tile);
-			m->tiles[y*m->width + x] = tile;
-		}
-	}
-	return m;
 }
 
 int setup_python(int argc, char *argv[])
