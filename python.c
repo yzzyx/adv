@@ -7,7 +7,7 @@ PyObject *main_module;
 PyObject *main_dict;
 
 adv_tile EMPTY_TILE = {
-	NULL, -1, 0, 0
+	NULL, -1, 0, 0, 0
 };
 
 
@@ -75,6 +75,7 @@ py_get_tile(PyObject *py_obj)
 		t->animation_frame = py_get_int(PyDict_GetItemString(sprite_animation, "current_frame"));
 	}
 	t->walkable = py_get_int_decref(PyObject_GetAttrString(py_obj, "walkable"));
+	t->visibility = py_get_int_decref(PyObject_GetAttrString(py_obj, "visibility"));
 	return t;
 }
 
@@ -82,8 +83,7 @@ adv_map *
 python_generate_map(const char *map_name)
 {
 	adv_map *m;
-	int width;
-	int height;
+
 	PyObject *map_def, *map_inst;
 	PyObject *tile_list;
 	PyObject *tmp;
@@ -113,6 +113,8 @@ python_generate_map(const char *map_name)
 		Py_DECREF(tmp);
 
 	m = malloc(sizeof(adv_map));
+	memset(m, 0, sizeof(adv_map));
+
 	m->py_obj = map_inst;
 	m->render_start_x = 0;
 	m->render_start_y = 0;
@@ -121,6 +123,7 @@ python_generate_map(const char *map_name)
 	m->tiles = malloc(sizeof(adv_tile *) * m->width *  m->height);
 
 	printf("Map size: %d x %d\n", m->width, m->height);
+	printf("tiles = %p\n", m->tiles);
 
 	PyObject *tile_list_row;
 	PyObject *py_tile;
