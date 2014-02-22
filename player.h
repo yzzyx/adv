@@ -4,12 +4,16 @@
 
 typedef struct t_adv_map adv_map;
 typedef struct t_player {
-	int tile_x;
+
+	int xx, yy; /* The absolute position of the monster */
+	int tile_x; /* Position on map */
 	int tile_y;
 
+	/* Movement - which direction, and what the target is */
+	int target_tile_x;
+	int target_tile_y;
 	int movement_x;
 	int movement_y;
-	int xx, yy;
 	int in_movement;
 
 	int hp;
@@ -27,7 +31,7 @@ typedef struct t_adv_map adv_map;
 player *setup_player();
 int move_player(player *p);
 
-int monster_gotoPos_C(player *p);
+int monster_gotoPos_C(player *p, int x, int y);
 
 #endif /* end of include guard: PLAYER_H */
 

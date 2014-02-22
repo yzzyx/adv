@@ -78,9 +78,6 @@ player_map_is_walkable(player *p)
 	int tx, ty;
 	int min_x, min_y, max_x, max_y;
 
-	adv_map *m;
-	m = p->map;
-
 	min_x = p->xx / FRAME_WIDTH;
 	min_y = p->yy / FRAME_WIDTH;
 
@@ -110,25 +107,33 @@ int move_player(player *p)
 	int prev_x, prev_y;
 	int prev_tile_x, prev_tile_y;
 	static int last_tick = 0;
+	int mx = 0, my = 0;
 
 	prev_x = p->xx;
 	prev_y = p->yy;
 	prev_tile_x = p->tile_x;
 	prev_tile_y = p->tile_y;
 
-	if (p->movement_x == 0 && p->movement_y == 0)
+	if (p->tile_x == p->target_tile_x &&
+	    p->tile_y == p->target_tile_y)
 		return 0;
 
+	if (p->target_tile_x < 0) p->target_tile_x = 0;
+	if (p->target_tile_y < 0) p->target_tile_y = 0;
+	if (p->target_tile_x > p->map->width - 1) p->target_tile_x = p->map->width - 1;
+	if (p->target_tile_y > p->map->height - 1) p->target_tile_y = p->map->height - 1;
+
+
+	if (p->target_tile_x > p->tile_x) mx = 1; 
+	else if (p->target_tile_x < p->tile_x) mx = -1; 
+	if (p->target_tile_y > p->tile_y) my = 1; 
+	else if (p->target_tile_y < p->tile_y) my = -1; 
 	p->in_movement = 1;
 
 	int i;
 	for (i = 0; i < p->speed; i++) {
-		//	if ((SDL_GetTicks() - last_tick) > (unsigned int)p->speed) {
-		//		last_tick = SDL_GetTicks();
-		p->xx += p->movement_x;// * p->speed;
-		p->yy += p->movement_y;// * p->speed;
-		//	}
-
+		p->xx += mx;
+		p->yy += my;
 
 		if (p->xx < 0) p->xx = 0;
 		else if (p->xx > (p->map->width-1)*FRAME_WIDTH)
@@ -141,25 +146,20 @@ int move_player(player *p)
 		if (!player_map_is_walkable(p)) {
 			p->xx = prev_x;
 			p->yy = prev_y;
-			p->movement_x = 0;
-			p->movement_y = 0;
+			p->target_tile_x = prev_tile_x;
+			p->target_tile_y = prev_tile_y;
 			p->in_movement = 0;
 			return 0;
 		}
 
-		p->tile_x = p->xx / FRAME_WIDTH;
-		p->tile_y = p->yy / FRAME_HEIGHT;
-
 		if(p->xx % FRAME_WIDTH == 0 &&
 		    p->yy % FRAME_HEIGHT == 0) {
-			p->movement_x = 0;
-			p->movement_y = 0;
-			p->in_movement = 0;
+			p->tile_x = p->xx / FRAME_WIDTH;
+			p->tile_y = p->yy / FRAME_HEIGHT;
 			new_tile = 1;
 			break;
 		}
 	}
-
 
 	if (new_tile) {
 		/* Call playerExit-method on tile we're leaving*/
@@ -177,5 +177,18 @@ int move_player(player *p)
 		Py_DECREF(tmp);
 	}
 
+	if (p->target_tile_x == p->tile_x &&
+	    p->target_tile_y == p->tile_y)
+		p->in_movement = 0;
+
 	return 1;
+}
+
+int
+monster_gotoPos_C(player *p, int x, int y)
+{
+	p->target_tile_x = x;
+	p->target_tile_y = y;
+
+	return 0;
 }
