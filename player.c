@@ -1,8 +1,10 @@
+#include <Python.h>
 #include "animation.h"
 #include "player.h"
 #include "common.h"
 #include "map.h"
 
+int move_player_cnt = 0;
 #define TICK_LENGTH 3
 
 /*
@@ -67,6 +69,35 @@ setup_player()
 	return p;
 }
 
+/* collision_player(player, map)
+ *
+ * Check for collision
+ */
+int
+player_map_is_walkable(player *p, adv_map *m)
+{
+	int tx, ty;
+	int min_x, min_y, max_x, max_y;
+
+	min_x = p->xx / FRAME_WIDTH;
+	min_y = p->yy / FRAME_WIDTH;
+
+	max_x = min_x + (((p->xx % FRAME_WIDTH) > 0) ? 1:0);
+	max_y = min_y + (((p->yy % FRAME_WIDTH) > 0) ? 1:0);
+	if (max_x >= m->width) max_x = m->width - 1;
+	if (max_y >= m->height) max_y = m->height - 1;
+
+	for (tx = min_x; tx <= max_x; tx ++) {
+		for (ty = min_y; ty <= max_y; ty ++) {
+			if (!m->tiles[tx+ty*m->width]->walkable)
+				return 0;
+		}
+	}
+			
+	return 1;
+
+}
+
 /* move_player
  *
  * called each tick, updating the player's position
@@ -75,75 +106,76 @@ int move_player(adv_map *m, player *p)
 {
 	int new_tile = 0;
 	int prev_x, prev_y;
-	int next_x, next_y;
+	int prev_tile_x, prev_tile_y;
+	static int last_tick = 0;
 
-	prev_x = p->tile_x;
-	prev_y = p->tile_y;
-	next_x = p->tile_x;
-	next_y = p->tile_y;
+	prev_x = p->xx;
+	prev_y = p->yy;
+	prev_tile_x = p->tile_x;
+	prev_tile_y = p->tile_y;
 
-	if (p->movement_x != 0)
-		next_x = p->tile_x + ((p->movement_x > 0) ? 1:-1);
-	if (p->movement_y != 0)
-		next_y = p->tile_y + ((p->movement_y > 0) ? 1:-1);
 
-	if (p->movement_x != 0 || p->movement_y != 0) {
-		p->in_movement = 1;
-		/* Check any/all tiles we pass over diagonally */
-		if (next_x < 0 || next_x >= m->width) {
+	if (p->movement_x == 0 && p->movement_y == 0)
+		return 0;
+
+	move_player_cnt ++;
+	p->in_movement = 1;
+
+	int i;
+	for (i = 0; i < p->speed; i++) {
+		//	if ((SDL_GetTicks() - last_tick) > (unsigned int)p->speed) {
+		//		last_tick = SDL_GetTicks();
+		p->xx += p->movement_x;// * p->speed;
+		p->yy += p->movement_y;// * p->speed;
+		//	}
+
+
+		if (p->xx < 0) p->xx = 0;
+		else if (p->xx > (m->width-1)*FRAME_WIDTH)
+			p->xx = (m->width-1)*FRAME_WIDTH;
+
+		if (p->yy < 0) p->yy = 0;
+		else if (p->yy > (m->height-1)*FRAME_HEIGHT)
+			p->yy = (m->height-1)*FRAME_HEIGHT;
+
+		if (!player_map_is_walkable(p, m)) {
+			p->xx = prev_x;
+			p->yy = prev_y;
 			p->movement_x = 0;
-			if (next_x < 0) next_x = 0;
-			else next_x = m->width - 1;
-		}
-
-		if (next_y < 0 || next_y >= m->height) {
 			p->movement_y = 0;
-			if (next_y < 0) next_y = 0;
-			else next_y = m->height - 1;
+			p->in_movement = 0;
+			return 0;
 		}
-		if (!(m->tiles[next_x + p->tile_y*m->width]->walkable) ||
-		    !(m->tiles[next_x + next_y*m->width]->walkable) ||
-		    !(m->tiles[p->tile_x + next_y*m->width]->walkable)) {
+
+		p->tile_x = p->xx / FRAME_WIDTH;
+		p->tile_y = p->yy / FRAME_HEIGHT;
+
+		if(p->xx % FRAME_WIDTH == 0 &&
+		    p->yy % FRAME_HEIGHT == 0) {
 			p->movement_x = 0;
 			p->movement_y = 0;
-		}
-	} else {
-		p->in_movement = 0;
-	}
-
-	if (p->movement_x != 0) {
-		p->xx += p->movement_x * p->speed;
-		if (abs(p->xx) >= FRAME_WIDTH) {
-			p->tile_x += (p->xx > 0) ? 1:-1;
-			p->xx = 0;
-			p->movement_x = 0;
+			p->in_movement = 0;
 			new_tile = 1;
+			break;
 		}
 	}
 
-	if (p->movement_y != 0) {
-		p->yy += p->movement_y * p->speed;
-		if (abs(p->yy) >= FRAME_WIDTH) {
-			p->tile_y += (p->yy > 0) ? 1:-1;
-			p->yy = 0;
-			p->movement_y = 0;
-			new_tile = 1;
-		}
-	}
 
 	if (new_tile) {
-		/* Call playerEnter-method on tile object */
+		/* Call playerExit-method on tile we're leaving*/
 		PyObject *tmp;
-		tmp = PyObject_CallMethod(m->tiles[prev_x + prev_y * m->width]->py_obj,
+		tmp = PyObject_CallMethod(
+		    m->tiles[prev_tile_x + prev_tile_y * m->width]->py_obj,
 		    "playerExit", "", NULL);
 		if (tmp == NULL) { PyErr_Print(); return -1; }
 		Py_DECREF(tmp);
 
+		/* Call playerEnter-method on tile we're entering*/
 		tmp = PyObject_CallMethod(m->tiles[p->tile_x + p->tile_y * m->width]->py_obj,
 		    "playerEnter", "", NULL);
 		if (tmp == NULL) { PyErr_Print(); return -1; }
 		Py_DECREF(tmp);
 	}
 
-	return 0;
+	return 1;
 }
