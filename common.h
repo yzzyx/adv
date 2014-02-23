@@ -19,6 +19,7 @@
 struct t_adv_base_object;
 #define ADV_OBJECT_HEADER \
 	PyObject *py_obj; \
+	int is_dirty; \
 	int timer;  \
 	struct t_adv_base_object *next; \
 	struct t_adv_base_object *prev;

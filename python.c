@@ -32,7 +32,8 @@ PyObject *loadAnimation(PyObject *self, PyObject *args)
 	return anim;
 }
 
-int pyobj_is_dirty(PyObject *obj)
+int
+pyobj_is_dirty(PyObject *obj)
 {
 	return py_get_int_decref(PyObject_GetAttrString(obj, "is_dirty"));
 }
@@ -56,8 +57,6 @@ py_update_monster(adv_monster *monster)
 	} else {
 		monster->animation_id = py_get_int(PyDict_GetItemString(sprite_animation, "id"));
 		monster->animation_frame = py_get_int(PyDict_GetItemString(sprite_animation, "current_frame"));
-		printf("animation_id : %d\n", monster->animation_id);
-		printf("animation_frame : %d\n", monster->animation_frame);
 	}
 	monster->hp = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "hp"));
 	monster->mp = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "mp"));
@@ -70,9 +69,24 @@ py_update_monster(adv_monster *monster)
 		monster->yy = monster->tile_y * FRAME_WIDTH;
 
 	monster->target_tile_x = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_x"));
-	monster->target_tile_x = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_y"));
+	monster->target_tile_y = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_y"));
 	monster->speed = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "speed"));
 	PyObject_SetAttrString(monster->py_obj, "is_dirty", Py_BuildValue("i", 0));
+	return 0;
+}
+
+int
+py_update_monster_from_c(adv_monster *monster)
+{
+
+	PyObject_SetAttrString(monster->py_obj, "hp", Py_BuildValue("i", monster->hp));
+	PyObject_SetAttrString(monster->py_obj, "mp", Py_BuildValue("i", monster->mp));
+	PyObject_SetAttrString(monster->py_obj, "x", Py_BuildValue("i", monster->tile_x));
+	PyObject_SetAttrString(monster->py_obj, "y", Py_BuildValue("i", monster->tile_y));
+	PyObject_SetAttrString(monster->py_obj, "target_x", Py_BuildValue("i", monster->target_tile_x));
+	PyObject_SetAttrString(monster->py_obj, "target_y", Py_BuildValue("i", monster->target_tile_y));
+	PyObject_SetAttrString(monster->py_obj, "speed", Py_BuildValue("i", monster->speed));
+	monster->is_dirty = 0;
 	return 0;
 }
 
@@ -82,6 +96,7 @@ py_new_monster_from_object(PyObject *obj)
 	adv_monster *monster;
 
 	monster = malloc(sizeof *monster);
+	memset(monster, 0, sizeof *monster);
 	monster->py_obj = obj;
 	py_update_base_object((adv_base_object*)monster);
 	py_update_monster(monster);
