@@ -20,8 +20,8 @@
 
 #define JUMPLIMIT 100
 
-char mod_x[4] = { -1,  0, 1, 0 };
-char mod_y[4] = {  0, -1, 0, 1 };
+int mod_x[4] = { -1,  0, 1, 0 };
+int mod_y[4] = {  0, -1, 0, 1 };
 char dir_name[4] = { 'W', 'N', 'E', 'S' };
 
 char *type_name[3] = { "N/A", "OPEN", "CLOSED" };
@@ -653,12 +653,9 @@ find_jump_node(adv_map *map, int dir,
 int
 get_first_direction(node_t *node)
 {
-	node_t *end_node;
 	char dir;
 
-	end_node = node;
-
-	/* Count number of steps */
+	/* Go to first node */
 	while (node->parent && node->parent->parent) {
 		node = node->parent;
 	}
@@ -810,7 +807,7 @@ pathfinder(adv_map *map, int x1, int y1, int x2, int y2)
 		node_type[P(node)] = TYPE_CLOSED;
 		a_star_map[P(node)] = 'C';
 
-		char direction;
+		int direction;
 
 		/* Look at node's neighbours */
 		for(direction=0;direction<4;direction++){

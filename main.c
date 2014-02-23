@@ -32,7 +32,6 @@ int main(int argc, char *argv[])
 
 	pathfinder_setup(m->width, m->height);
 
-	char *path;
 	p->xx = p->tile_x * FRAME_WIDTH;
 	p->yy = p->tile_y * FRAME_HEIGHT;
 	p->target_tile_x = p->tile_x;
