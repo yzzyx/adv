@@ -8,7 +8,7 @@
 #include "map.h"
 
 #undef DEBUG
-#define _log(...) printf(__VA_ARGS__)
+#define _log(...)
 
 #define DIR_W 0
 #define DIR_N 1
