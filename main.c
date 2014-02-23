@@ -50,8 +50,10 @@ int main(int argc, char *argv[])
 	SDL_UpdateWindowSurface(rs.win);
 
 	while(!quit) {
-		if (move_player(p)) {
-			render_map(m, p);
+
+		update_map_monsters(m);
+		move_player(p);
+		if (render_map(m, p)) {
 			SDL_UpdateWindowSurface(rs.win);
 		}
 

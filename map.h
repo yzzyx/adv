@@ -44,6 +44,7 @@ typedef struct t_adv_map {
 adv_map *get_map(const char *map_name);
 int render_map(adv_map *m, player *p);
 
+int update_map_monsters(adv_map *m);
 int call_tick_map(adv_map *m);
 int call_tick_map_monsters(adv_map *m);
 int call_tick_map_objects(adv_map *m);

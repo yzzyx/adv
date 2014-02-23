@@ -115,6 +115,8 @@ get_map(const char *map_name)
 			continue;
 		else
 			monster = py_new_monster_from_object(py_monster);
+
+		monster->map = m;
 		if (m->monsters) {
 			m->monsters->prev = (adv_base_object*)monster;
 			monster->next = (adv_base_object*)m->monsters;
@@ -299,6 +301,7 @@ render_map(adv_map *m, player *p)
 		}
 	}
 
+#if USE_FOG
 	if (m->fog_surface == NULL) {
 		m->fog_surface = surface_sdl(m->width * FRAME_WIDTH,
 		    m->height * FRAME_HEIGHT);
@@ -315,6 +318,7 @@ render_map(adv_map *m, player *p)
 
 		m->fog_map = malloc(m->width * m->height);
 	}
+#endif
 
 	clip.x = 0;
 	clip.y = 0;
@@ -420,8 +424,6 @@ render_map(adv_map *m, player *p)
 	SDL_BlitSurface(m->fog_surface, &clip, rs.screen, &screen_rect);
 #endif
 	
-	printf("player animation: %d[%d]\n", p->animation_id,
-	    p->animation_frame);
 	render_animation(p->animation_id,
 	    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
 	    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y,
@@ -434,16 +436,13 @@ render_map(adv_map *m, player *p)
 	for (; monster != NULL; monster = (adv_monster *)monster->next) {
 		if (monster->tile_x >= start_x && monster->tile_x <= end_x &&
 		    monster->tile_y >= start_y && monster->tile_y <= end_y)
-			printf("render monster @ %d,%d [%d] [%d, %d]\n",
-			    monster->tile_x, monster->tile_y,
-				monster->animation_id, monster->xx,
-				monster->yy);
 			render_animation(monster->animation_id,
 			    monster->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
 			    monster->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y,
 			    monster->animation_frame);
 	}
-	return 0;
+	/* Return 1 if we've actually done something */
+	return 1;
 }
 
 int
@@ -462,6 +461,25 @@ int call_tick_map_monsters(adv_map *m)
 	}
 	return 0;
 }
+
+int update_map_monsters(adv_map *m)
+{
+	adv_monster *monster;
+
+	monster = m->monsters;
+	for (; monster != NULL; monster = (adv_monster *)monster->next) {
+		if (monster->is_dirty) {
+			py_update_monster_from_c(monster);
+		} else {
+			if (pyobj_is_dirty(monster->py_obj)) {
+				py_update_monster(monster);
+			}
+		}
+		move_player(monster);
+	}
+	return 0;
+}
+
 
 int call_tick_map_objects(adv_map *m)
 {

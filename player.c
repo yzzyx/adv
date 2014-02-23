@@ -169,6 +169,8 @@ int move_player(player *p)
 		    "playerEnter", "", NULL);
 		if (tmp == NULL) { PyErr_Print(); return -1; }
 		Py_DECREF(tmp);
+
+		p->is_dirty = 1;
 	}
 
 	if (p->target_tile_x == p->tile_x &&
@@ -183,6 +185,7 @@ monster_gotoPosition(player *p, int x, int y)
 {
 	p->target_tile_x = x;
 	p->target_tile_y = y;
+	p->is_dirty = 1;
 
 	return 0;
 }
