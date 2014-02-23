@@ -3,6 +3,7 @@
 import map
 from tiles.grass import Grass
 from tiles.rock import Rock
+from monsters.gnome import Gnome
 
 class level1(map.Map):
 	tiles = [
@@ -47,7 +48,10 @@ class level1(map.Map):
 	height = 23
 
 	def generate(self):
-		pass
+		self.monsters = []
+
+		self.monsters.append(Gnome(10, 10))
+
 	def getTiles(self):
 		pass
  

@@ -4,6 +4,7 @@
 #include "common.h"
 #include "astar.h"
 #include "map.h"
+#include "python.h"
 
 #define TICK_LENGTH 3
 
@@ -15,24 +16,10 @@
 int
 py_update_c_player(player *p)
 {
-	PyObject *sprite_animation;
-	sprite_animation = PyObject_GetAttrString(p->py_obj, "sprite_animation");
-	if (sprite_animation == NULL) {
-		p->animation_id = -1;
-		PyErr_Print();
-	} else {
-		p->animation_id = py_get_int(PyDict_GetItemString(sprite_animation, "id"));
-		p->animation_frame = py_get_int(PyDict_GetItemString(sprite_animation, "current_frame"));
-	}
 
-	p->hp = py_get_int(PyObject_GetAttrString(p->py_obj, "hp"));
-	p->mp = py_get_int(PyObject_GetAttrString(p->py_obj, "mp"));
-	p->tile_x = py_get_int(PyObject_GetAttrString(p->py_obj, "x"));
-	p->tile_y = py_get_int(PyObject_GetAttrString(p->py_obj, "y"));
-	p->speed = py_get_int(PyObject_GetAttrString(p->py_obj, "speed"));
+	py_update_base_object((adv_base_object*)p);
+	py_update_monster((adv_monster*)p);
 	return 0;
-
-
 }
 
 player *
@@ -108,7 +95,6 @@ int move_player(player *p)
 	int new_tile = 0;
 	int prev_x, prev_y;
 	int prev_tile_x, prev_tile_y;
-	static int last_tick = 0;
 	int mx = 0, my = 0;
 
 	prev_x = p->xx;
@@ -193,7 +179,7 @@ int move_player(player *p)
 }
 
 int
-monster_gotoPos_C(player *p, int x, int y)
+monster_gotoPosition(player *p, int x, int y)
 {
 	p->target_tile_x = x;
 	p->target_tile_y = y;

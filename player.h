@@ -1,37 +1,36 @@
 #ifndef PLAYER_H
 #define PLAYER_H
-#include "python.h"
+#include "common.h"
 
 typedef struct t_adv_map adv_map;
-typedef struct t_player {
+typedef struct t_adv_monster {
+	ADV_OBJECT_HEADER
+	ADV_OBJECT_LIST
 
 	int xx, yy; /* The absolute position of the monster */
 	int tile_x; /* Position on map */
 	int tile_y;
+	int in_movement;
 
-	/* Movement - which direction, and what the target is */
+	/* Where is it heading? */
 	int target_tile_x;
 	int target_tile_y;
-	int movement_x;
-	int movement_y;
-	int in_movement;
 
 	int hp;
 	int mp;
 	int speed;
+
 	int animation_id;
 	int animation_frame;
 
 	adv_map *map;
-	PyObject *py_obj;
-}player;
+}adv_monster;
 
-typedef struct t_adv_map adv_map;
+typedef struct t_adv_monster player;
 
 player *setup_player();
 int move_player(player *p);
-
-int monster_gotoPos_C(player *p, int x, int y);
+int monster_gotoPosition(player *p, int x, int y);
 
 #endif /* end of include guard: PLAYER_H */
 

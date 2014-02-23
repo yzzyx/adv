@@ -9,7 +9,7 @@
 int map_count = 0;
 
 adv_tile EMPTY_TILE = {
-	NULL, -1, 0, 0, 0
+	NULL, -1, 0, 0, 0,
 };
 
 
@@ -48,7 +48,11 @@ get_map(const char *map_name)
 	m = malloc(sizeof(adv_map));
 	memset(m, 0, sizeof(adv_map));
 
+
 	m->py_obj = map_inst;
+
+	py_update_base_object((adv_base_object*)m);
+
 	m->render_start_x = 0;
 	m->render_start_y = 0;
 	m->width = py_get_int(PyObject_GetAttrString(map_inst, "width"));
@@ -94,6 +98,34 @@ get_map(const char *map_name)
 		}
 	}
 
+	PyObject *monster_list;
+	PyObject *py_monster;
+	adv_monster *monster;
+	monster_list = PyObject_GetAttrString(map_inst, "monsters");
+	if (monster_list == NULL) {
+		PyErr_Print();
+		free(m);
+		return NULL;
+	}
+
+	printf("this map has %d monsters\n", PyList_Size(monster_list));
+	for (x = 0; x < PyList_Size(monster_list); x ++) {
+		py_monster = PyList_GetItem(monster_list, x);
+		if (py_monster == Py_None)
+			continue;
+		else
+			monster = py_new_monster_from_object(py_monster);
+		if (m->monsters) {
+			m->monsters->prev = (adv_base_object*)monster;
+			monster->next = (adv_base_object*)m->monsters;
+			monster->prev = NULL;
+		} else {
+			monster->next = NULL;
+			monster->prev = NULL;
+		}
+		m->monsters = monster;
+	}
+
 	return m;
 }
 
@@ -118,6 +150,7 @@ map_to_screen_y(adv_map *m, int y)
 	return sy;
 }
 
+#if USE_FOG
 static int
 map_pos_is_visible(adv_map *m, player *p, int map_x, int map_y)
 {
@@ -230,6 +263,7 @@ map_pos_is_visible2(adv_map *m, player *p, int map_x, int map_y)
 	}
 	return 1;
 }
+#endif
 
 
 int
@@ -241,7 +275,6 @@ render_map(adv_map *m, player *p)
 	int start_x, start_y;
 	int end_x, end_y;
 	int screen_width, screen_height;
-	int blit;
 
 	screen_width = rs.screen->w / FRAME_WIDTH;
 	screen_height = rs.screen->h / FRAME_WIDTH;
@@ -347,7 +380,6 @@ render_map(adv_map *m, player *p)
 		prev_x = p->xx;
 		prev_y = p->yy;
 
-		blit = 1;
 #if USE_FOG
 
 		/* Create a visibility-map */
@@ -379,10 +411,6 @@ render_map(adv_map *m, player *p)
 	/* Even if we're not blitting anything, we need to check if any of the
 	 * tiles are dirty
 	 */
-	SDL_Rect tile_rect;
-	tile_rect.w = FRAME_WIDTH;
-	tile_rect.h = FRAME_HEIGHT;
-
 	clip.x = start_x * FRAME_WIDTH + map_scroll_x;
 	clip.y = start_y * FRAME_HEIGHT + map_scroll_y;
 	clip.w = screen_width * FRAME_WIDTH;
@@ -392,10 +420,56 @@ render_map(adv_map *m, player *p)
 	SDL_BlitSurface(m->fog_surface, &clip, rs.screen, &screen_rect);
 #endif
 	
+	printf("player animation: %d[%d]\n", p->animation_id,
+	    p->animation_frame);
 	render_animation(p->animation_id,
 	    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
 	    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y,
 	    p->animation_frame);
 	    
+
+	adv_monster *monster;
+
+	monster = m->monsters;
+	for (; monster != NULL; monster = (adv_monster *)monster->next) {
+		if (monster->tile_x >= start_x && monster->tile_x <= end_x &&
+		    monster->tile_y >= start_y && monster->tile_y <= end_y)
+			printf("render monster @ %d,%d [%d] [%d, %d]\n",
+			    monster->tile_x, monster->tile_y,
+				monster->animation_id, monster->xx,
+				monster->yy);
+			render_animation(monster->animation_id,
+			    monster->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
+			    monster->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y,
+			    monster->animation_frame);
+	}
+	return 0;
+}
+
+int
+call_tick_map(adv_map *m)
+{
+	return py_update_object_timer((adv_base_object*)m);
+}
+
+int call_tick_map_monsters(adv_map *m)
+{
+	adv_monster *monster;
+
+	monster = m->monsters;
+	for (; monster != NULL; monster = (adv_monster *)monster->next) {
+		py_update_object_timer((adv_base_object*)monster);
+	}
+	return 0;
+}
+
+int call_tick_map_objects(adv_map *m)
+{
+	adv_object *obj;
+
+	obj = m->objects;
+	for (; obj != NULL; obj = (adv_object *)obj->next) {
+		py_update_object_timer((adv_base_object*)obj);
+	}
 	return 0;
 }

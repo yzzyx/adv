@@ -1,7 +1,7 @@
 #include "sdl.h"
 #include "animation.h"
-#include "map.h"
 #include "player.h"
+#include "map.h"
 #include "python.h"
 #include "astar.h"
 
@@ -30,7 +30,6 @@ int main(int argc, char *argv[])
 	}
 
 
-
 	pathfinder_setup(m->width, m->height);
 
 	char *path;
@@ -39,9 +38,11 @@ int main(int argc, char *argv[])
 	p->target_tile_x = p->tile_x;
 	p->target_tile_y = p->tile_y;
 	p->map = m;
+	printf("main: player animation: %d[%d]\n", p->animation_id,
+	    p->animation_frame);
 	set_animation_blendmode(p->animation_id, SDL_BLENDMODE_BLEND);
 
-	uint32_t ticks_last = 0;
+	uint32_t ticks_last = SDL_GetTicks();
 	int quit = 0;
 	SDL_Event event;
 
@@ -54,10 +55,19 @@ int main(int argc, char *argv[])
 			SDL_UpdateWindowSurface(rs.win);
 		}
 
+//		render_map_monsters(m);
+//		render_map_objects(m);
+		
 		//If we want to cap the frame rate
-		if ((SDL_GetTicks()<  1000 / FRAMES_PER_SECOND)) {
+		if ((SDL_GetTicks() - ticks_last) >  (1000 / 2)) {
 			//Sleep the remaining frame time
-			SDL_Delay((1000 / FRAMES_PER_SECOND) - SDL_GetTicks());
+//			SDL_Delay((1000 / FRAMES_PER_SECOND) - (SDL_GetTicks() - ticks_last));
+			ticks_last = SDL_GetTicks();
+
+			py_update_object_timer((adv_base_object*)p);
+			call_tick_map(m);
+			call_tick_map_monsters(m);
+			call_tick_map_objects(m);
 		}
 
 		while (SDL_PollEvent(&event)) {
@@ -66,24 +76,21 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		uint32_t t = SDL_GetTicks();
-		if (1 || t - ticks_last > TICK_TIMEOUT) {
-			ticks_last = t;
 
-			const uint8_t *keystate = SDL_GetKeyboardState(NULL);
-			if (keystate[SDL_SCANCODE_UP] && p->in_movement == 0) { p->target_tile_y = p->tile_y - 1; }
-			if (keystate[SDL_SCANCODE_DOWN] && p->in_movement == 0) { p->target_tile_y = p->tile_y + 1; }
-			if (keystate[SDL_SCANCODE_LEFT] && p->in_movement == 0) { p->target_tile_x = p->tile_x - 1; }
-			if (keystate[SDL_SCANCODE_RIGHT] && p->in_movement == 0) { p->target_tile_x = p->tile_x + 1; }
-			if (keystate[SDL_SCANCODE_Q]) quit++;
-			if (keystate[SDL_SCANCODE_M]) {
-				monster_gotoPos_C(p, 5, 5);
+		const uint8_t *keystate = SDL_GetKeyboardState(NULL);
+		if (keystate[SDL_SCANCODE_UP] && p->in_movement == 0) { p->target_tile_y = p->tile_y - 1; }
+		if (keystate[SDL_SCANCODE_DOWN] && p->in_movement == 0) { p->target_tile_y = p->tile_y + 1; }
+		if (keystate[SDL_SCANCODE_LEFT] && p->in_movement == 0) { p->target_tile_x = p->tile_x - 1; }
+		if (keystate[SDL_SCANCODE_RIGHT] && p->in_movement == 0) { p->target_tile_x = p->tile_x + 1; }
+		if (keystate[SDL_SCANCODE_Q]) quit++;
+		if (keystate[SDL_SCANCODE_M]) {
+
+			monster_gotoPosition(p, 5, 5);
 /*
-			path =  pathfinder(m, p->tile_x, p->tile_y, 5, 5);
-			printf("path: %s\n", path);
-			free(path);
-			*/
-			}
+		path =  pathfinder(m, p->tile_x, p->tile_y, 5, 5);
+		printf("path: %s\n", path);
+		free(path);
+		*/
 		}
 	}
 	SDL_Quit();
