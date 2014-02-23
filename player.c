@@ -2,6 +2,7 @@
 #include "animation.h"
 #include "player.h"
 #include "common.h"
+#include "astar.h"
 #include "map.h"
 
 #define TICK_LENGTH 3
@@ -103,6 +104,7 @@ player_map_is_walkable(player *p)
  */
 int move_player(player *p)
 {
+	int dir;
 	int new_tile = 0;
 	int prev_x, prev_y;
 	int prev_tile_x, prev_tile_y;
@@ -122,12 +124,18 @@ int move_player(player *p)
 	if (p->target_tile_y < 0) p->target_tile_y = 0;
 	if (p->target_tile_x > p->map->width - 1) p->target_tile_x = p->map->width - 1;
 	if (p->target_tile_y > p->map->height - 1) p->target_tile_y = p->map->height - 1;
+	if (p->map->tiles[p->target_tile_x + p->target_tile_y *
+	    p->map->width]->walkable == 0) {
+		p->target_tile_x = p->tile_x;
+		p->target_tile_y = p->tile_y;
+		return 0;
+	}
+	dir = pathfinder(p->map, p->tile_x, p->tile_y, p->target_tile_x, p->target_tile_y);
 
-
-	if (p->target_tile_x > p->tile_x) mx = 1; 
-	else if (p->target_tile_x < p->tile_x) mx = -1; 
-	if (p->target_tile_y > p->tile_y) my = 1; 
-	else if (p->target_tile_y < p->tile_y) my = -1; 
+	if (dir == 'N') { my = -1; }
+	else if (dir == 'S') { my = 1; }
+	else if (dir == 'W') { mx = 1; }
+	else if (dir == 'E') { mx = -1; }
 	p->in_movement = 1;
 
 	int i;

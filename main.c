@@ -3,6 +3,7 @@
 #include "map.h"
 #include "player.h"
 #include "python.h"
+#include "astar.h"
 
 int main(int argc, char *argv[])
 {
@@ -28,6 +29,11 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
+
+
+	pathfinder_setup(m->width, m->height);
+
+	char *path;
 	p->xx = p->tile_x * FRAME_WIDTH;
 	p->yy = p->tile_y * FRAME_HEIGHT;
 	p->target_tile_x = p->tile_x;
@@ -70,7 +76,14 @@ int main(int argc, char *argv[])
 			if (keystate[SDL_SCANCODE_LEFT] && p->in_movement == 0) { p->target_tile_x = p->tile_x - 1; }
 			if (keystate[SDL_SCANCODE_RIGHT] && p->in_movement == 0) { p->target_tile_x = p->tile_x + 1; }
 			if (keystate[SDL_SCANCODE_Q]) quit++;
-			if (keystate[SDL_SCANCODE_M]) monster_gotoPos_C(p, 5, 5);
+			if (keystate[SDL_SCANCODE_M]) {
+				monster_gotoPos_C(p, 5, 5);
+/*
+			path =  pathfinder(m, p->tile_x, p->tile_y, 5, 5);
+			printf("path: %s\n", path);
+			free(path);
+			*/
+			}
 		}
 	}
 	SDL_Quit();
