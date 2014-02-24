@@ -5,6 +5,8 @@
 #include "python.h"
 #include "astar.h"
 
+player *main_player;
+
 int main(int argc, char *argv[])
 {
 	player *p;
@@ -40,6 +42,7 @@ int main(int argc, char *argv[])
 	printf("main: player animation: %d[%d]\n", p->animation_id,
 	    p->animation_frame);
 	set_animation_blendmode(p->animation_id, SDL_BLENDMODE_BLEND);
+	main_player = p;
 
 	uint32_t ticks_last = SDL_GetTicks();
 	int quit = 0;

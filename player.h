@@ -32,5 +32,7 @@ player *setup_player();
 int move_player(player *p);
 int monster_gotoPosition(player *p, int x, int y);
 
+extern player *main_player;
+
 #endif /* end of include guard: PLAYER_H */
 
