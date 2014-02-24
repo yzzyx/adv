@@ -400,22 +400,27 @@ find_jump_node(adv_map *map, int dir,
 					break;
 
 				/* JP 5 */
-				if (map->tiles[x+(ny-1)*map->width]->walkable == 0)
+				if (!map_is_walkable(map,x,ny-1))
+//				if (map->tiles[x+(ny-1)*map->width]->walkable == 0)
 //				if( map[x + (ny-1)*MAP_WIDTH] == '%' )
 					break;
 
 				/* JP 1 */
 				if (x > 0 &&
-				        map->tiles[x-1+ ny*map->width]->walkable != 0 &&
-					map->tiles[x-1+ (ny-1)*map->width]->walkable == 0)
+				     map_is_walkable(map, x-1, ny) &&
+				    !map_is_walkable(map, x-1, ny-1))
+//				        map->tiles[x-1+ ny*map->width]->walkable != 0 &&
+//					map->tiles[x-1+ (ny-1)*map->width]->walkable == 0)
 //					map[x-1 + ny*MAP_WIDTH] != '%' &&
 //					map[x-1 + (ny-1)*MAP_WIDTH] == '%' )
 					break;
 
 				/* JP 2 */
 				if (x > 0 &&
-				    map->tiles[x-1 + (ny+1)*map->width]->walkable == 0 &&
-				    map->tiles[x-1 + ny*map->width]->walkable != 0)
+				   !map_is_walkable(map, x-1, ny+1) &&
+				    map_is_walkable(map, x-1, ny))
+//				    map->tiles[x-1 + (ny+1)*map->width]->walkable == 0 &&
+//				    map->tiles[x-1 + ny*map->width]->walkable != 0)
 
 //					map[x-1 + (ny+1)*MAP_WIDTH] == '%' &&
 //					map[x-1 + ny*MAP_WIDTH] != '%' )
@@ -423,16 +428,20 @@ find_jump_node(adv_map *map, int dir,
 
 				/* JP 3 */
 				if (x < MAP_WIDTH - 1 &&
-				    map->tiles[x+1 + ny*map->width]->walkable != 0 &&
-				    map->tiles[x+1 + (ny-1)*map->width]->walkable == 0)
+				     map_is_walkable(map, x+1, ny) &&
+				    !map_is_walkable(map, x+1, ny-1))
+//				    map->tiles[x+1 + ny*map->width]->walkable != 0 &&
+//				    map->tiles[x+1 + (ny-1)*map->width]->walkable == 0)
 //					map[x+1 + ny*MAP_WIDTH] != '%' &&
 //					map[x+1 + (ny-1)*MAP_WIDTH] == '%' )
 					break;
 
 				/* JP 4 */
 				if (x < MAP_WIDTH - 1 &&
-				    map->tiles[x+1 + (ny+1)*map->width]->walkable == 0 &&
-				    map->tiles[x+1 + ny*map->width]->walkable != 0)
+				   !map_is_walkable(map, x+1, ny+1) &&
+				    map_is_walkable(map, x+1, ny))
+//				    map->tiles[x+1 + (ny+1)*map->width]->walkable == 0 &&
+//				    map->tiles[x+1 + ny*map->width]->walkable != 0)
 //					map[x+1 + (ny+1)*MAP_WIDTH] == '%' &&
 //					map[x+1 + ny*MAP_WIDTH] != '%' )
 					break;
@@ -467,38 +476,47 @@ find_jump_node(adv_map *map, int dir,
 					break;
 
 				/* JP 5 */
-				if (map->tiles[x + (ny+1)*map->width]->walkable == 0)
+				//if (map->tiles[x + (ny+1)*map->width]->walkable == 0)
+				if (!map_is_walkable(map, x, ny+1))
 //				if( map[x + (ny+1)*MAP_WIDTH] == '%' )
 					break;
 
 				/* JP 1 */
 				if (x > 0 &&
-				    map->tiles[x-1 + ny*map->width]->walkable != 0 &&
-				    map->tiles[x-1 + (ny+1)*map->width]->walkable == 0)
+				     map_is_walkable(map, x-1, ny) &&
+				    !map_is_walkable(map, x-1, ny+1))
+//				    map->tiles[x-1 + ny*map->width]->walkable != 0 &&
+//				    map->tiles[x-1 + (ny+1)*map->width]->walkable == 0)
 //					map[x-1 + ny*MAP_WIDTH] != '%' &&
 //					map[x-1 + (ny+1)*MAP_WIDTH] == '%' )
 					break;
 
 				/* JP 2 */
 				if (x > 0 &&
-				    map->tiles[x-1 + (ny-1)*map->width]->walkable == 0 &&
-				    map->tiles[x-1 + ny*map->width]->walkable != 0)
+				   !map_is_walkable(map, x-1, ny-1) &&
+				    map_is_walkable(map, x-1, ny))
+//				    map->tiles[x-1 + (ny-1)*map->width]->walkable == 0 &&
+//				    map->tiles[x-1 + ny*map->width]->walkable != 0)
 //					map[x-1 + (ny-1)*MAP_WIDTH] == '%' &&
 //					map[x-1 + ny*MAP_WIDTH] != '%' )
 					break;
 
 				/* JP 3 */
 				if (x < MAP_WIDTH - 1 &&
-				    map->tiles[x+1 + ny*map->width]->walkable != 0 &&
-				    map->tiles[x+1 + (ny+1)*map->width]->walkable == 0)
+				     map_is_walkable(map, x+1, ny) &&
+				    !map_is_walkable(map, x+1, ny+1))
+//				    map->tiles[x+1 + ny*map->width]->walkable != 0 &&
+//				    map->tiles[x+1 + (ny+1)*map->width]->walkable == 0)
 //					map[x+1 + ny*MAP_WIDTH] != '%' &&
 //					map[x+1 + (ny+1)*MAP_WIDTH] == '%' )
 					break;
 
 				/* JP 4 */
 				if (x < MAP_WIDTH - 1 &&
-				    map->tiles[x+1 + (ny-1)*map->width]->walkable == 0 &&
-				    map->tiles[x+1 + ny*map->width]->walkable != 0)
+				   !map_is_walkable(map, x+1, ny-1) &&
+				    map_is_walkable(map, x+1, ny))
+//				    map->tiles[x+1 + (ny-1)*map->width]->walkable == 0 &&
+//				    map->tiles[x+1 + ny*map->width]->walkable != 0)
 //					map[x+1 + (ny-1)*MAP_WIDTH] == '%' &&
 //					map[x+1 + ny*MAP_WIDTH] != '%' )
 					break;
@@ -535,37 +553,46 @@ find_jump_node(adv_map *map, int dir,
 
 				/* JP 5 */
 //				if (map[nx+1 + y*MAP_WIDTH] == '%' )
-				if (map->tiles[nx + 1 + y*map->width]->walkable == 0)
+//				if (map->tiles[nx + 1 + y*map->width]->walkable == 0)
+				if (!map_is_walkable(map, nx+1, y))
 					break;
 
 				/* JP 1 */
 				if (y > 0 &&
-					map->tiles[nx + (y-1)*map->width]->walkable != 0 &&
-				        map->tiles[nx+1 + (y-1)*map->width]->walkable == 0)
+				     map_is_walkable(map, nx  , y-1) &&
+				    !map_is_walkable(map, nx+1, y-1))
+//					map->tiles[nx + (y-1)*map->width]->walkable != 0 &&
+//				        map->tiles[nx+1 + (y-1)*map->width]->walkable == 0)
 //					map[nx   + (y-1)*MAP_WIDTH] != '%' &&
 //					map[nx+1 + (y-1)*MAP_WIDTH] == '%' )
 					break;
 
 				/* JP 2 */
 				if (y > 0 &&
-				    map->tiles[nx-1 + (y-1)*map->width]->walkable == 0 &&
-				    map->tiles[nx   + (y-1)*map->width]->walkable != 0)
+				   !map_is_walkable(map, nx-1, y-1) &&
+				    map_is_walkable(map, nx  , y-1))
+//				    map->tiles[nx-1 + (y-1)*map->width]->walkable == 0 &&
+//				    map->tiles[nx   + (y-1)*map->width]->walkable != 0)
 //					map[nx-1 + (y-1)*MAP_WIDTH] == '%' &&
 //					map[nx   + (y-1)*MAP_WIDTH] != '%' )
 					break;
 
 				/* JP 3 */
 				if (y < MAP_HEIGHT - 1 &&
-				    map->tiles[nx   + (y+1)*map->width]->walkable != 0 &&
-				    map->tiles[nx+1 + (y+1)*map->width]->walkable == 0)
+				     map_is_walkable(map, nx  , y+1) &&
+				    !map_is_walkable(map, nx+1, y+1))
+//  				    map->tiles[nx   + (y+1)*map->width]->walkable != 0 &&
+//				    map->tiles[nx+1 + (y+1)*map->width]->walkable == 0)
 //					map[nx   + (y+1)*MAP_WIDTH] != '%' &&
 //					map[nx+1 + (y+1)*MAP_WIDTH] == '%' )
 					break;
 
 				/* JP 4 */
 				if (y < MAP_HEIGHT - 1 &&
-				    map->tiles[nx-1 + (y+1)*map->width]->walkable == 0 &&
-				    map->tiles[nx   + (y+1)*map->width]->walkable != 0)
+				   !map_is_walkable(map, nx-1, y+1) &&
+				    map_is_walkable(map, nx  , y+1))
+//				    map->tiles[nx-1 + (y+1)*map->width]->walkable == 0 &&
+//				    map->tiles[nx   + (y+1)*map->width]->walkable != 0)
 //					map[nx-1 + (y+1)*MAP_WIDTH] == '%' &&
 //					map[nx   + (y+1)*MAP_WIDTH] != '%' )
 					break;
@@ -602,37 +629,46 @@ find_jump_node(adv_map *map, int dir,
 
 				/* JP 5 */
 //				if (map[nx-1 + y*MAP_WIDTH] == '%' )
-				if (map->tiles[nx-1 + y*map->width]->walkable == 0)
+//				if (map->tiles[nx-1 + y*map->width]->walkable == 0)
+				if (!map_is_walkable(map, nx-1, y))
 					break;
 
 				/* JP 1 */
 				if (y > 0 &&
-				    map->tiles[nx   + (y-1)*map->width]->walkable != 0 &&
-				    map->tiles[nx-1 + (y-1)*map->width]->walkable == 0)
+				     map_is_walkable(map, nx  , y-1) &&
+				    !map_is_walkable(map, nx-1, y-1))
+//				    map->tiles[nx   + (y-1)*map->width]->walkable != 0 &&
+//				    map->tiles[nx-1 + (y-1)*map->width]->walkable == 0)
 //					map[nx   + (y-1)*MAP_WIDTH] != '%' &&
 //					map[nx-1 + (y-1)*MAP_WIDTH] == '%' )
 					break;
 
 				/* JP 2 */
 				if (y > 0 &&
-				    map->tiles[nx+1 + (y-1)*map->width]->walkable == 0 &&
-				    map->tiles[nx   + (y-1)*map->width]->walkable != 0)
+				   !map_is_walkable(map, nx+1, y-1) &&
+				    map_is_walkable(map, nx  , y-1))
+//				    map->tiles[nx+1 + (y-1)*map->width]->walkable == 0 &&
+//				    map->tiles[nx   + (y-1)*map->width]->walkable != 0)
 //					map[nx+1 + (y-1)*MAP_WIDTH] == '%' &&
 //					map[nx   + (y-1)*MAP_WIDTH] != '%' )
 					break;
 
 				/* JP 3 */
 				if (y < MAP_HEIGHT - 1 &&
-				    map->tiles[nx   + (y+1)*map->width]->walkable != 0 &&
-				    map->tiles[nx-1 + (y+1)*map->width]->walkable == 0)
+				     map_is_walkable(map, nx  , y+1) &&
+				    !map_is_walkable(map, nx-1, y+1))
+//				    map->tiles[nx   + (y+1)*map->width]->walkable != 0 &&
+//				    map->tiles[nx-1 + (y+1)*map->width]->walkable == 0)
 //					map[nx   + (y+1)*MAP_WIDTH] != '%' &&
 //					map[nx-1 + (y+1)*MAP_WIDTH] == '%' )
 					break;
 
 				/* JP 4 */
 				if (y < MAP_HEIGHT - 1 &&
-				    map->tiles[nx+1 + (y+1)*map->width]->walkable == 0 &&
-				    map->tiles[nx   + (y+1)*map->width]->walkable != 0)
+				    map_is_walkable(map, nx+1, y+1) &&
+				   !map_is_walkable(map, nx  , y+1))
+//				    map->tiles[nx+1 + (y+1)*map->width]->walkable == 0 &&
+//				    map->tiles[nx   + (y+1)*map->width]->walkable != 0)
 //					map[nx+1 + (y+1)*MAP_WIDTH] == '%' &&
 //					map[nx   + (y+1)*MAP_WIDTH] != '%' )
 					break;
@@ -824,7 +860,8 @@ pathfinder(adv_map *map, int x1, int y1, int x2, int y2)
 			y = node->y + mod_y[direction];
 
 			/* Skip walls */
-			if(map->tiles[x + y*map->width]->walkable == 0){
+//			if(map->tiles[x + y*map->width]->walkable == 0){
+			if(!map_is_walkable(map,x,y)) {
 				continue;
 			}
 

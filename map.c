@@ -491,3 +491,24 @@ int call_tick_map_objects(adv_map *m)
 	}
 	return 0;
 }
+
+int
+map_is_walkable(adv_map *m, int x, int y)
+{
+
+	if (m->tiles[x+y*m->width]->walkable == 0)
+		return 0;
+
+	/* FIXME - don't use global player */
+	if (main_player->tile_x == x && main_player->tile_y == y)
+		return 0;
+
+	adv_monster *monster;
+
+	monster = m->monsters;
+	for (; monster != NULL; monster = (adv_monster *)monster->next) {
+		if (monster->tile_x == x && monster->tile_y == y)
+			return 0;
+	}
+	return 1;
+}
