@@ -1,9 +1,8 @@
 #ifndef ANIMATION_H
 #define ANIMATION_H
 #include "common.h"
-#include "SDL/SDL.h"
-#include "SDL/SDL_image.h"
-#include "SDL/SDL_ttf.h"
+#include "SDL.h"
+#include "SDL_image.h"
 
 #define MAX_ANIMATIONS 256
 #define FRAME_WIDTH 32
