@@ -3,9 +3,7 @@
 import tile
 
 class Rock(tile.Tile):
-	"""Docstring for test. """
-
-	sprite_animation = loadAnimation("rock1.png")
+	spritesheet = loadSpritesheet("rock1.png")
 	walkable = 0
 	visibility = 0
 

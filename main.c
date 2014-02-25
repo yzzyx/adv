@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 	
-	setup_animation();
+	animation_init();
 	setup_python(argc, argv);
 
 	if ((m= get_map("level1")) == NULL) {
@@ -39,9 +39,10 @@ int main(int argc, char *argv[])
 	p->target_tile_x = p->tile_x;
 	p->target_tile_y = p->tile_y;
 	p->map = m;
-	printf("main: player animation: %d[%d]\n", p->animation_id,
-	    p->animation_frame);
-	set_animation_blendmode(p->animation_id, SDL_BLENDMODE_BLEND);
+	printf("main: player animation: %d\n", p->animation);
+
+	animation_set_spritesheet_blendmode(animation_get_spritesheet_from_anim(p->animation),
+	    SDL_BLENDMODE_BLEND);
 	main_player = p;
 
 	uint32_t ticks_last = SDL_GetTicks();

@@ -3,9 +3,8 @@
 import tile
 
 class Grass(tile.Tile):
-	"""Docstring for test. """
+	spritesheet = loadSpritesheet("grass1.png")
 
-	sprite_animation = loadAnimation("grass1.png")
 	counter = 0
 
 	def info(self):

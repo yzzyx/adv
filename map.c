@@ -108,7 +108,6 @@ get_map(const char *map_name)
 		return NULL;
 	}
 
-	printf("this map has %d monsters\n", PyList_Size(monster_list));
 	for (x = 0; x < PyList_Size(monster_list); x ++) {
 		py_monster = PyList_GetItem(monster_list, x);
 		if (py_monster == Py_None)
@@ -291,8 +290,8 @@ render_map(adv_map *m, player *p)
 
 		for(x = 0; x < m->width; x ++) {
 			for(y = 0; y < m->height; y ++) {
-				render_animation_full(m->tiles[x+y*m->width]->animation_id,
-				    m->tiles[x+y*m->width]->animation_frame,
+				animation_render_sprite_full(m->tiles[x+y*m->width]->spritesheet,
+				    m->tiles[x+y*m->width]->spriteid,
 				    map_to_screen_x(m, x),
 				    map_to_screen_y(m, y),
 				    m->map_surface);
@@ -424,10 +423,9 @@ render_map(adv_map *m, player *p)
 	SDL_BlitSurface(m->fog_surface, &clip, rs.screen, &screen_rect);
 #endif
 	
-	render_animation(p->animation_id,
+	animation_render(p->animation,
 	    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
-	    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y,
-	    p->animation_frame);
+	    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
 	    
 
 	adv_monster *monster;
@@ -436,10 +434,9 @@ render_map(adv_map *m, player *p)
 	for (; monster != NULL; monster = (adv_monster *)monster->next) {
 		if (monster->tile_x >= start_x && monster->tile_x <= end_x &&
 		    monster->tile_y >= start_y && monster->tile_y <= end_y)
-			render_animation(monster->animation_id,
+			animation_render(monster->animation,
 			    monster->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
-			    monster->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y,
-			    monster->animation_frame);
+			    monster->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
 	}
 	/* Return 1 if we've actually done something */
 	return 1;

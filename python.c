@@ -9,28 +9,49 @@ PyObject *main_module;
 PyObject *main_dict;
 
 
-PyObject *loadAnimation(PyObject *self, PyObject *args)
+PyObject *py_animLoadSpritesheet(PyObject *self, PyObject *args)
 {
 	const char *filename;
-	int animation_id = 0;
+	int ss_id = 0;
 
 	if (!PyArg_ParseTuple(args, "s", &filename)) {
-		printf("loadAnimation():\n");
+		printf("py_loadSpritesheet():\n");
 		PyErr_Print();
 		return NULL;
 	}
 
-	animation_id = load_animation(filename);
+	ss_id = animation_load_spritesheet(filename);
 
-	PyObject *anim = PyDict_New();
-	PyDict_SetItemString(anim, "frames",
-	    Py_BuildValue("i", animation_get_n_frames(animation_id)));
-	PyDict_SetItemString(anim, "current_frame", Py_BuildValue("i", 0));
-	PyDict_SetItemString(anim, "id", Py_BuildValue("i", animation_id));
+	PyObject *py_ss = Py_BuildValue("i", ss_id);
+	/*PyDict_New();
+	PyDict_SetItemString(py_ss, "frames",
+	    Py_BuildValue("i", animation_spritesheet_get_n_sprites(ss_id)));
+	PyDict_SetItemString(py_ss, "id", Py_BuildValue("i", ss_id));
+	*/
 
-	printf("loadAnimation(%s): %d!\n",filename, animation_id);
-	return anim;
+	printf("loadSpritesheet(%s): %d!\n",filename, ss_id);
+	return py_ss;
 }
+
+PyObject *py_animCreate(PyObject *self, PyObject *args)
+{
+	int ss_id;
+	int start;
+	int length;
+	int anim_id;
+
+	if (!PyArg_ParseTuple(args, "iii", &ss_id, &start, &length)) {
+		printf("py_animCreate():\n");
+		PyErr_Print();
+		return NULL;
+	}
+
+	anim_id = animation_create(ss_id, start, length);
+
+	PyObject *py_ss = Py_BuildValue("i", anim_id);
+	return py_ss;
+}
+
 
 int
 pyobj_is_dirty(PyObject *obj)
@@ -48,6 +69,7 @@ py_update_base_object(adv_base_object *obj)
 int
 py_update_monster(adv_monster *monster)
 {
+	/*
 	PyObject *sprite_animation;
 	sprite_animation = PyObject_GetAttrString(monster->py_obj, "sprite_animation");
 	if (sprite_animation == NULL) {
@@ -58,6 +80,9 @@ py_update_monster(adv_monster *monster)
 		monster->animation_id = py_get_int(PyDict_GetItemString(sprite_animation, "id"));
 		monster->animation_frame = py_get_int(PyDict_GetItemString(sprite_animation, "current_frame"));
 	}
+	*/
+	monster->spritesheet = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "spritesheet"));
+	monster->animation = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "animation"));
 	monster->hp = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "hp"));
 	monster->mp = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "mp"));
 	monster->tile_x = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "x"));
@@ -78,7 +103,6 @@ py_update_monster(adv_monster *monster)
 int
 py_update_monster_from_c(adv_monster *monster)
 {
-
 	PyObject_SetAttrString(monster->py_obj, "hp", Py_BuildValue("i", monster->hp));
 	PyObject_SetAttrString(monster->py_obj, "mp", Py_BuildValue("i", monster->mp));
 	PyObject_SetAttrString(monster->py_obj, "x", Py_BuildValue("i", monster->tile_x));
@@ -105,7 +129,8 @@ py_new_monster_from_object(PyObject *obj)
 }
 
 static PyMethodDef methods[] = {
-    {"loadAnimation", loadAnimation, METH_VARARGS, "loadAnimation" },
+    {"loadSpritesheet", py_animLoadSpritesheet, METH_VARARGS, "load spritesheet from file" },
+    {"createAnimation", py_animCreate, METH_VARARGS, "create animation from spritesheet" },
 //    {"monster_gotoPosition", monster_gotoPosition, METH_VARARGS, "monster_gotoPosition" },
     {NULL, NULL, 0, NULL}
 };
@@ -153,6 +178,7 @@ py_get_tile(PyObject *py_obj)
 	t = malloc(sizeof *t);
 	t->py_obj = py_obj;
 
+	/*
 	PyObject *sprite_animation;
 	sprite_animation = PyObject_GetAttrString(py_obj, "sprite_animation");
 	if (sprite_animation == NULL || sprite_animation == Py_None) {
@@ -163,6 +189,9 @@ py_get_tile(PyObject *py_obj)
 		t->animation_id = py_get_int(PyDict_GetItemString(sprite_animation, "id"));
 		t->animation_frame = py_get_int(PyDict_GetItemString(sprite_animation, "current_frame"));
 	}
+	*/
+	t->spritesheet = py_get_int_decref(PyObject_GetAttrString(py_obj, "spritesheet"));
+	t->spriteid = py_get_int_decref(PyObject_GetAttrString(py_obj, "spriteid"));
 	t->walkable = py_get_int_decref(PyObject_GetAttrString(py_obj, "walkable"));
 	t->visibility = py_get_int_decref(PyObject_GetAttrString(py_obj, "visibility"));
 	return t;

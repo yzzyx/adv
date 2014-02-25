@@ -28,10 +28,11 @@ class Monster():
 	mp = 100
 	speed = 2
 	timer = -1
-	is_dirty = 0
+	is_dirty = 1
 
 	inventory = None
-	sprite_animation = None
+	spritesheet = None
+	animation = None
 
 	def __init__(self, x = -1, y = -1):
 		if x != -1:

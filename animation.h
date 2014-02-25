@@ -1,84 +1,25 @@
 #ifndef ANIMATION_H
 #define ANIMATION_H
 #include "common.h"
-#include "SDL.h"
-#include "SDL_image.h"
 
-#define MAX_ANIMATIONS 256
 #define FRAME_WIDTH 32
 #define FRAME_HEIGHT 32
 
-typedef struct t_animation {
-	SDL_Surface *img;
-	SDL_Rect *clips;
-	int frames;
-}animation;
+#define SPRITE_SIZE 32
 
-extern animation **animation_list;
-int setup_animation();
-int load_animation(const char *filename);
-int set_animation_blendmode(int animation_id, int blendmode);
-int render_animation(int animation_id, int x, int y, int frame);
-int render_animation_full(int animation_id, int frame, int x, int y, SDL_Surface *surface);
-int render_animation_clipped(int animation_id, int frame, int x, int y, int w, int h, SDL_Surface *surface);
+int animation_init();
+int animation_load_spritesheet(const char *filename);
+int animation_set_spritesheet_blendmode(int spritesheet, int blendmode);
+
+int animation_render_sprite_full(int spritesheet, int spriteid, int x, int y, SDL_Surface *surface);
+#define animation_render_sprite(spritesheet, spriteid, x, y) animation_render_sprite_full(spritesheet, spriteid, x, y, rs.screen)
+int animation_render_sprite_clipped(int spritesheet, int spriteid, int x, int y, int w, int h, SDL_Surface *surface);
+
+int animation_create(int spritesheet, int start_sprite, int end_sprite);
+int animation_next_clip(int animation_id);
+int animation_render(int animation_id, int x, int y);
+int animation_render_full(int animation_id, int x, int y, SDL_Surface *surface);
+int animation_render_clipped(int animation_id, int x, int y, int w, int h, SDL_Surface *surface);
 int animation_get_n_frames(int animation_id);
-
-
-/*
-class animation {
-	public:
-		SDL_Surface *image;
-		SDL_Rect *clips;
-		uint32_t frames;
-		uint32_t current_frame;
-		uint32_t fps;
-		uint32_t last_ticks;
-		int w, h;
-
-		animation(const char *filename, int frame_width)
-		{
-			int x;
-
-			this->image = load_image(filename);
-			this->current_frame = 0;
-			this->frames = this->image->w / frame_width;
-			this->clips = new SDL_Rect[frames];
-			this->w = frame_width;
-			this->h = this->image->h;
-			this->fps = 3;
-			
-			x = 0;
-			for (uint32_t i = 0; i < frames; i++) {
-				this->clips[i].w = frame_width;
-				this->clips[i].h = this->image->h;
-				this->clips[i].x = x;
-				this->clips[i].y = 0;
-				x += frame_width;
-			}
-
-		}
-
-		~animation() {
-			SDL_FreeSurface(this->image);
-			delete this->clips;
-		}
-
-		int render(render_space *rs, int x, int y) {
-				SDL_Rect offset;
-
-				offset.x = x;
-				offset.y = y;
-
-				if (SDL_GetTicks() - last_ticks > 1000 / fps) {
-					current_frame ++;
-					last_ticks = SDL_GetTicks();
-					if (current_frame == frames)
-						current_frame = 0;
-				}
-
-				return SDL_BlitSurface(image, &clips[current_frame], rs->screen, &offset);
-			}
-
-};
-*/
+int animation_get_spritesheet_from_anim(int animation_id);
 #endif /* end of include guard: ANIMATION_H */

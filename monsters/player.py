@@ -9,7 +9,8 @@ class Player(monster.Monster):
 	target_y = y
 	speed = 4
 	timer = 4
-	sprite_animation = loadAnimation("player1.png")
+	spritesheet = loadSpritesheet("player1.png")
+	animation = createAnimation(spritesheet, 0, 1);
 
 	def tick(self):
-		print "player TICK"
+		pass

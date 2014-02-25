@@ -9,8 +9,8 @@ typedef struct t_adv_map adv_map;
 typedef struct t_adv_tile {
 	ADV_OBJECT_HEADER
 
-	int animation_id;
-	int animation_frame;
+	int spritesheet;
+	int spriteid;
 
 	int walkable;
 	int visibility;
@@ -21,7 +21,6 @@ typedef struct t_adv_object {
 	ADV_OBJECT_LIST
 
 	int animation_id;
-	int animation_frame;
 }adv_object;
 
 typedef struct t_adv_map {

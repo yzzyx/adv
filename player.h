@@ -20,8 +20,8 @@ typedef struct t_adv_monster {
 	int mp;
 	int speed;
 
-	int animation_id;
-	int animation_frame;
+	int spritesheet;
+	int animation;
 
 	adv_map *map;
 }adv_monster;
