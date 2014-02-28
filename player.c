@@ -105,8 +105,9 @@ int move_player(player *p)
 	if (p->target_tile_y < 0) p->target_tile_y = 0;
 	if (p->target_tile_x > p->map->width - 1) p->target_tile_x = p->map->width - 1;
 	if (p->target_tile_y > p->map->height - 1) p->target_tile_y = p->map->height - 1;
-	if (p->map->tiles[p->target_tile_x + p->target_tile_y *
-	    p->map->width]->walkable == 0) {
+	/* FIXME - walking into an enemy, is that the same as attacking them?
+	 */
+	if (map_is_walkable(p->map, p->target_tile_x, p->target_tile_y) == 0) {
 		p->target_tile_x = p->tile_x;
 		p->target_tile_y = p->tile_y;
 		return 0;
