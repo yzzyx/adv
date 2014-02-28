@@ -7,6 +7,59 @@
 
 player *main_player;
 
+#define FPS_MAX 60
+
+struct fps_data
+{
+	int fps;
+
+	uint32_t curr_ticks;
+	float max_frame_ticks;
+	uint32_t last_second_ticks;
+	int frame_count;
+	
+	uint32_t last_frame_ticks;
+	uint32_t target_ticks;
+}fps_data;
+
+void fps_init()
+{ 
+	fps_data.max_frame_ticks=(1000.0/(float)FPS_MAX)+0.00001;
+	fps_data.frame_count=0;
+	fps_data.last_second_ticks=SDL_GetTicks();
+}
+
+int fps_limit()
+{
+	fps_data.frame_count++;
+	fps_data.target_ticks = fps_data.last_second_ticks +
+	    (uint32_t)(fps_data.frame_count * fps_data.max_frame_ticks);
+	fps_data.curr_ticks = SDL_GetTicks();
+	
+	if (fps_data.curr_ticks < fps_data.target_ticks) {
+		SDL_Delay(fps_data.target_ticks - fps_data.curr_ticks);
+		fps_data.curr_ticks = SDL_GetTicks();
+	}
+
+	fps_data.last_frame_ticks = fps_data.curr_ticks;
+	if (fps_data.curr_ticks - fps_data.last_second_ticks>=1000) {
+		fps_data.fps = fps_data.frame_count;
+		fps_data.frame_count=0;
+		fps_data.last_second_ticks = SDL_GetTicks();
+		return 1;
+	}
+	return 0;
+}
+
+
+void
+fps_update()
+{
+	char str[255];
+	sprintf(str, "adv - %d/%d", fps_data.fps, FPS_MAX);
+	SDL_SetWindowTitle(rs.win, str);
+}
+
 int main(int argc, char *argv[])
 {
 	player *p;
@@ -32,6 +85,7 @@ int main(int argc, char *argv[])
 	}
 
 
+	fps_init();
 	pathfinder_setup(m->width, m->height);
 
 	p->xx = p->tile_x * FRAME_WIDTH;
@@ -44,7 +98,6 @@ int main(int argc, char *argv[])
 	animation_set_spritesheet_blendmode(p->spritesheet, SDL_BLENDMODE_BLEND);
 	main_player = p;
 
-	uint32_t ticks_last = SDL_GetTicks();
 	int quit = 0;
 	SDL_Event event;
 
@@ -53,19 +106,19 @@ int main(int argc, char *argv[])
 
 	while(!quit) {
 
+		if (fps_limit())
+			fps_update();
+
 		update_map_monsters(m);
 		if (render_map(m, p)) {
 			SDL_UpdateWindowSurface(rs.win);
 		}
 
-		move_player(p);
 //		render_map_monsters(m);
 //		render_map_objects(m);
-		if ((SDL_GetTicks() - ticks_last) <  (1000 / 60)) {
-			SDL_Delay((1000 / 60) - (SDL_GetTicks() - ticks_last));
-		}
+		move_player(p);
 
-		if ((SDL_GetTicks() - ticks_last) >  (1000 / 3)) {
+		if (fps_data.frame_count % (FPS_MAX / 3) == 1) {
 			if (p->in_movement) {
 				animation_next_clip(p->animation_moving[0]);
 				if (p->has_directions) {
@@ -74,12 +127,6 @@ int main(int argc, char *argv[])
 					animation_next_clip(p->animation_moving[3]);
 				}
 			}
-		}
-		//If we want to cap the frame rate
-		if ((SDL_GetTicks() - ticks_last) >  (1000 / 2)) {
-			//Sleep the remaining frame time
-//			SDL_Delay((1000 / FRAMES_PER_SECOND) - (SDL_GetTicks() - ticks_last));
-			ticks_last = SDL_GetTicks();
 
 			py_update_object_timer((adv_base_object*)p);
 			call_tick_map(m);
@@ -95,10 +142,14 @@ int main(int argc, char *argv[])
 
 
 		const uint8_t *keystate = SDL_GetKeyboardState(NULL);
-		if (keystate[SDL_SCANCODE_UP] && p->in_movement == 0) { p->target_tile_y = p->tile_y - 1; }
-		if (keystate[SDL_SCANCODE_DOWN] && p->in_movement == 0) { p->target_tile_y = p->tile_y + 1; }
-		if (keystate[SDL_SCANCODE_LEFT] && p->in_movement == 0) { p->target_tile_x = p->tile_x - 1; }
-		if (keystate[SDL_SCANCODE_RIGHT] && p->in_movement == 0) { p->target_tile_x = p->tile_x + 1; }
+		if ((keystate[SDL_SCANCODE_UP] || keystate[SDL_SCANCODE_W]) &&
+		    p->in_movement == 0) { p->target_tile_y = p->tile_y - 1; }
+		if ((keystate[SDL_SCANCODE_DOWN] || keystate[SDL_SCANCODE_S]) &&
+		    p->in_movement == 0) { p->target_tile_y = p->tile_y + 1; }
+		if ((keystate[SDL_SCANCODE_LEFT] || keystate[SDL_SCANCODE_A]) &&
+		    p->in_movement == 0) { p->target_tile_x = p->tile_x - 1; }
+		if ((keystate[SDL_SCANCODE_RIGHT] || keystate[SDL_SCANCODE_D]) &&
+		    p->in_movement == 0) { p->target_tile_x = p->tile_x + 1; }
 		if (keystate[SDL_SCANCODE_Q]) quit++;
 		if (keystate[SDL_SCANCODE_M]) {
 
