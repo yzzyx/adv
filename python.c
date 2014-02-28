@@ -63,6 +63,12 @@ int
 py_update_base_object(adv_base_object *obj)
 {
 	obj->timer = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "timer"));
+	obj->has_directions = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "has_directions"));
+
+	if (obj->has_directions)
+		obj->direction = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "direction"));
+	else
+		obj->direction = DIRECTION_UP;
 	return 0;
 }
 
@@ -81,8 +87,43 @@ py_update_monster(adv_monster *monster)
 		monster->animation_frame = py_get_int(PyDict_GetItemString(sprite_animation, "current_frame"));
 	}
 	*/
+	py_update_base_object((adv_base_object*)monster);
+
 	monster->spritesheet = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "spritesheet"));
-	monster->animation = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "animation"));
+
+	PyObject *list;
+	list = PyObject_GetAttrString(monster->py_obj, "animation_stopped");
+	if (list == NULL) {
+		PyErr_Print();
+		monster->animation_stopped[0] = -1;
+		monster->animation_stopped[1] = -1;
+		monster->animation_stopped[2] = -1;
+		monster->animation_stopped[3] = -1;
+	} else {
+		monster->animation_stopped[0] = py_get_int(PyList_GetItem(list, 0));
+		if (monster->has_directions) {
+			monster->animation_stopped[1] = py_get_int(PyList_GetItem(list, 1));
+			monster->animation_stopped[2] = py_get_int(PyList_GetItem(list, 2));
+			monster->animation_stopped[3] = py_get_int(PyList_GetItem(list, 3));
+		}
+	}
+	
+	list = PyObject_GetAttrString(monster->py_obj, "animation_moving");
+	if (list == NULL) {
+		PyErr_Print();
+		monster->animation_moving[0] = -1;
+		monster->animation_moving[1] = -1;
+		monster->animation_moving[2] = -1;
+		monster->animation_moving[3] = -1;
+	} else {
+		monster->animation_moving[0] = py_get_int(PyList_GetItem(list, 0));
+		if (monster->has_directions) {
+			monster->animation_moving[1] = py_get_int(PyList_GetItem(list, 1));
+			monster->animation_moving[2] = py_get_int(PyList_GetItem(list, 2));
+			monster->animation_moving[3] = py_get_int(PyList_GetItem(list, 3));
+		}
+	}
+
 	monster->hp = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "hp"));
 	monster->mp = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "mp"));
 	monster->tile_x = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "x"));

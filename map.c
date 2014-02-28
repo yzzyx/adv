@@ -423,10 +423,16 @@ render_map(adv_map *m, player *p)
 	SDL_BlitSurface(m->fog_surface, &clip, rs.screen, &screen_rect);
 #endif
 	
-	animation_render(p->animation,
-	    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
-	    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
-	    
+
+	if (p->in_movement) {
+		animation_render(p->animation_moving[p->direction],
+		    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
+		    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
+	} else {
+		animation_render(p->animation_stopped[p->direction],
+		    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
+		    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
+	}
 
 	adv_monster *monster;
 
@@ -434,7 +440,7 @@ render_map(adv_map *m, player *p)
 	for (; monster != NULL; monster = (adv_monster *)monster->next) {
 		if (monster->tile_x >= start_x && monster->tile_x <= end_x &&
 		    monster->tile_y >= start_y && monster->tile_y <= end_y)
-			animation_render(monster->animation,
+			animation_render(monster->animation_stopped[monster->direction],
 			    monster->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
 			    monster->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
 	}

@@ -17,7 +17,6 @@ int
 py_update_c_player(player *p)
 {
 
-	py_update_base_object((adv_base_object*)p);
 	py_update_monster((adv_monster*)p);
 	return 0;
 }
@@ -102,10 +101,6 @@ int move_player(player *p)
 	prev_tile_x = p->tile_x;
 	prev_tile_y = p->tile_y;
 
-	if (p->tile_x == p->target_tile_x &&
-	    p->tile_y == p->target_tile_y)
-		return 0;
-
 	if (p->target_tile_x < 0) p->target_tile_x = 0;
 	if (p->target_tile_y < 0) p->target_tile_y = 0;
 	if (p->target_tile_x > p->map->width - 1) p->target_tile_x = p->map->width - 1;
@@ -116,12 +111,33 @@ int move_player(player *p)
 		p->target_tile_y = p->tile_y;
 		return 0;
 	}
-	dir = pathfinder(p->map, p->tile_x, p->tile_y, p->target_tile_x, p->target_tile_y);
 
-	if (dir == 'N') { my = -1; }
-	else if (dir == 'S') { my = 1; }
-	else if (dir == 'W') { mx = 1; }
-	else if (dir == 'E') { mx = -1; }
+	if (p->tile_x == p->target_tile_x &&
+	    p->tile_y == p->target_tile_y)
+		return 0;
+
+	if (p->target_tile_x == p->tile_x && p->target_tile_y == p->tile_y - 1)
+		dir = DIRECTION_UP;
+	else if (p->target_tile_x == p->tile_x  && p->target_tile_y == p->tile_y + 1)
+		dir = DIRECTION_DOWN;
+	else if (p->target_tile_x == p->tile_x - 1 && p->target_tile_y == p->tile_y)
+		dir = DIRECTION_LEFT;
+	else if (p->target_tile_x == p->tile_x + 1 && p->target_tile_y == p->tile_y)
+		dir = DIRECTION_RIGHT;
+	else {
+		int dir_chr = pathfinder(p->map, p->tile_x, p->tile_y, p->target_tile_x, p->target_tile_y);
+		/* FIXME - store path somewhere, and don't use these conversions */
+		if (dir_chr == 'N') { dir = DIRECTION_UP; }
+		else if (dir_chr == 'S') { dir = DIRECTION_DOWN; }
+		else if (dir_chr == 'E') { dir = DIRECTION_LEFT; }
+		else if (dir_chr == 'W') { dir = DIRECTION_RIGHT; }
+	}
+
+	if (dir == DIRECTION_UP) { my = -1; }
+	else if (dir == DIRECTION_DOWN) { my = 1; }
+	else if (dir == DIRECTION_RIGHT) { mx = 1; }
+	else if (dir == DIRECTION_LEFT) { mx = -1; }
+	p->direction = dir;
 	p->in_movement = 1;
 
 	int i;

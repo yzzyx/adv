@@ -21,7 +21,8 @@ typedef struct t_adv_monster {
 	int speed;
 
 	int spritesheet;
-	int animation;
+	int animation_stopped[4];
+	int animation_moving[4];
 
 	adv_map *map;
 }adv_monster;

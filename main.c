@@ -39,10 +39,9 @@ int main(int argc, char *argv[])
 	p->target_tile_x = p->tile_x;
 	p->target_tile_y = p->tile_y;
 	p->map = m;
-	printf("main: player animation: %d\n", p->animation);
+	printf("main: player animation: %d\n", p->animation_stopped[0]);
 
-	animation_set_spritesheet_blendmode(animation_get_spritesheet_from_anim(p->animation),
-	    SDL_BLENDMODE_BLEND);
+	animation_set_spritesheet_blendmode(p->spritesheet, SDL_BLENDMODE_BLEND);
 	main_player = p;
 
 	uint32_t ticks_last = SDL_GetTicks();
@@ -55,14 +54,27 @@ int main(int argc, char *argv[])
 	while(!quit) {
 
 		update_map_monsters(m);
-		move_player(p);
 		if (render_map(m, p)) {
 			SDL_UpdateWindowSurface(rs.win);
 		}
 
+		move_player(p);
 //		render_map_monsters(m);
 //		render_map_objects(m);
-		
+		if ((SDL_GetTicks() - ticks_last) <  (1000 / 60)) {
+			SDL_Delay((1000 / 60) - (SDL_GetTicks() - ticks_last));
+		}
+
+		if ((SDL_GetTicks() - ticks_last) >  (1000 / 3)) {
+			if (p->in_movement) {
+				animation_next_clip(p->animation_moving[0]);
+				if (p->has_directions) {
+					animation_next_clip(p->animation_moving[1]);
+					animation_next_clip(p->animation_moving[2]);
+					animation_next_clip(p->animation_moving[3]);
+				}
+			}
+		}
 		//If we want to cap the frame rate
 		if ((SDL_GetTicks() - ticks_last) >  (1000 / 2)) {
 			//Sleep the remaining frame time

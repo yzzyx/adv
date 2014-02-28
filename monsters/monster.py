@@ -29,10 +29,14 @@ class Monster():
 	speed = 2
 	timer = -1
 	is_dirty = 1
+	has_directions = 1		# Monsters usually have 4 directions
+	direction = DIRECTION_DOWN;
 
 	inventory = None
 	spritesheet = None
 	animation = None
+	animation_stopped = None
+	animation_moving = None
 
 	def __init__(self, x = -1, y = -1):
 		if x != -1:

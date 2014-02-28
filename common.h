@@ -15,6 +15,11 @@
 
 #define FRAMES_PER_SECOND 60
 
+#define DIRECTION_DOWN	    0
+#define DIRECTION_LEFT	    1
+#define DIRECTION_UP	    2
+#define DIRECTION_RIGHT	    3
+
 
 struct t_adv_base_object;
 #define ADV_OBJECT_HEADER \
@@ -22,7 +27,9 @@ struct t_adv_base_object;
 	int is_dirty; \
 	int timer;  \
 	struct t_adv_base_object *next; \
-	struct t_adv_base_object *prev;
+	struct t_adv_base_object *prev; \
+	int has_directions; /* If set, we need to keep track of the current direction this object is facing */ \
+	int direction;
 
 typedef struct t_adv_base_object {
 	ADV_OBJECT_HEADER
