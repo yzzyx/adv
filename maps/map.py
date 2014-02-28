@@ -7,6 +7,7 @@ class Map():
 	timer = -1
 	monsters = None
 	objects = None
+	has_directions = 0
 
 	def generate():
 		pass
