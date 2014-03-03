@@ -7,6 +7,7 @@ typedef struct t_adv_monster {
 	ADV_OBJECT_HEADER
 	ADV_OBJECT_LIST
 
+	int xmod, ymod;
 	int xx, yy; /* The absolute position of the monster */
 	int tile_x; /* Position on map */
 	int tile_y;
