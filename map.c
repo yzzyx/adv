@@ -270,18 +270,7 @@ map_pos_is_visible2(adv_map *m, player *p, int map_x, int map_y)
 int
 render_map(adv_map *m, player *p)
 {
-	static int prev_x = -1,
-		   prev_y = -1;
 	int x, y;
-	int start_x, start_y;
-	int end_x, end_y;
-	int screen_width, screen_height;
-
-	screen_width = rs.screen->w / FRAME_WIDTH;
-	screen_height = rs.screen->h / FRAME_WIDTH;
-
-	SDL_Rect clip;
-	SDL_Rect screen_rect;
 
 	if (m->map_surface == NULL) {
 		m->map_surface = surface_sdl(m->width * FRAME_WIDTH,
@@ -318,107 +307,52 @@ render_map(adv_map *m, player *p)
 		m->fog_map = malloc(m->width * m->height);
 	}
 #endif
+	int start_x, start_y;
+	int end_x, end_y;
+	int screen_width, screen_height;
+	int map_width, map_height;
 
-	clip.x = 0;
-	clip.y = 0;
-	clip.w = rs.screen->w;
-	clip.h = rs.screen->h;
-	memcpy(&screen_rect, &clip, sizeof(SDL_Rect));
-	int map_scroll_y = 0, map_scroll_x = 0;
+	SDL_Rect clip;
 
-	start_x = p->tile_x - screen_width / 2;
-	start_y = p->tile_y - screen_height / 2;
-	end_x = p->tile_x + screen_width / 2;
-	end_y = p->tile_y + screen_height / 2;
 
-	if (m->width < screen_width) {
-		start_x = 0; end_x = m->width;
-		clip.w = m->width * FRAME_WIDTH;
-		screen_rect.w = clip.w;
-		screen_rect.x = (rs.screen->w -
-		    ((end_x - start_x)*FRAME_WIDTH))/2;
-	} else if (m->width > screen_width) {
-		if (start_x < 0) start_x = 0;
+	map_width = m->width * SPRITE_SIZE;
+	map_height = m->height * SPRITE_SIZE;
+	screen_width = rs.screen->w;
+	screen_height = rs.screen->h;
 
-		end_x = start_x + screen_width + 1;
-		if (end_x > m->width) {
-			end_x = m->width;
-			start_x = m->width - screen_width;
-		}
-
-		if(p->xx % FRAME_WIDTH > 0 &&
-		    p->tile_x == (start_x + screen_width / 2) &&
-		    m->width - p->tile_x > screen_width/2) {
-			map_scroll_x = p->xx - (start_x + screen_width/2) * FRAME_WIDTH;
-		}
+	if (p->xx < screen_width / 2) {
+		start_x = 0;
+		end_x = screen_width;
+	} else if (p->xx > map_width - screen_width / 2) {
+		end_x = map_width;
+		start_x = map_width - screen_width;
+	} else {
+		start_x = p->xx - screen_width / 2;
+		end_x = p->xx + screen_width / 2;
 	}
 
-	if (m->height < screen_height) {
-		start_y = 0; end_y = m->height;
-		clip.h = m->height * FRAME_WIDTH;
-		screen_rect.h = clip.h;
-		screen_rect.y = (rs.screen->h -
-		    ((end_y - start_y)*FRAME_HEIGHT))/2;
-	} else if (m->height > screen_height) {
-		if (start_y < 0) start_y = 0;
-
-		end_y = start_y + screen_height + 1;
-		if (end_y > m->height) {
-			end_y = m->height;
-			start_y = m->height - screen_height;
-		}
-
-		if(p->yy % FRAME_HEIGHT > 0 &&
-		    p->tile_y == (start_y + screen_height / 2) &&
-		    m->height - p->tile_y > screen_height/2 + 1) {
-			map_scroll_y = p->yy - (start_y + screen_height/2) * FRAME_WIDTH;
-		}
+	if (p->yy < screen_height / 2) {
+		start_y = 0;
+		end_y = screen_width;
+	} else if (p->yy > map_height - screen_height / 2) {
+		end_y = map_height;
+		start_y = map_height - screen_height;
+	} else {
+		start_y = p->yy - screen_height / 2;
+		end_y = p->yy + screen_height / 2;
 	}
 
 
-	/* Only blit if something changed */
-	if (p->xx != prev_x || 
-	    p->yy != prev_y) {
+	if (start_x < 0) start_x = 0;
+	if (start_y < 0) start_y = 0;
+	if (end_x > screen_width) end_x = screen_width;
+	if (end_y > screen_height) end_y = screen_height;
 
-		prev_x = p->xx;
-		prev_y = p->yy;
-
-#if USE_FOG
-
-		/* Create a visibility-map */
-		SDL_FillRect(m->fog_surface, NULL, 0);
-
-		memset(m->fog_map, 0, m->width * m->height);
-		for (x = start_x * FRAME_WIDTH; x < end_x * FRAME_WIDTH; x += 16) {
-			for (y = start_y * FRAME_HEIGHT; y < end_y *
-			    FRAME_HEIGHT; y += 16) {
-
-				if (m->fog_map[(x>>5) + (y>>5) * m->width] == 0 &&
-				   !map_pos_is_visible2(m, p, x, y)) {
-					render_animation_clipped(rs.fog_tile,
-					    0, x, y, 16, 16,
-					    m->fog_surface);
-				} else {
-					m->fog_map[(x>>5) + (y>>5) * m->width]= 1;
-					SDL_Rect r;
-					r.x = (x >> 5) * FRAME_WIDTH;
-					r.y = (y >> 5) * FRAME_HEIGHT;
-					r.w = 32; r.h = 32;
-					SDL_FillRect(m->fog_surface, &r, 0);
-				}
-			}
-		}
-#endif
-	}
-
-	/* Even if we're not blitting anything, we need to check if any of the
-	 * tiles are dirty
-	 */
-	clip.x = start_x * FRAME_WIDTH + map_scroll_x;
-	clip.y = start_y * FRAME_HEIGHT + map_scroll_y;
-	clip.w = screen_width * FRAME_WIDTH;
-	clip.h = screen_height * FRAME_WIDTH;
-	SDL_BlitSurface(m->map_surface, &clip, rs.screen, &screen_rect);
+	clip.x = start_x;
+	clip.y = start_y;
+	clip.w = end_x;
+	clip.h = end_y;
+	SDL_BlitSurface(m->map_surface, &clip, rs.screen, NULL);
 #if USE_FOG
 	SDL_BlitSurface(m->fog_surface, &clip, rs.screen, &screen_rect);
 #endif
@@ -428,12 +362,12 @@ render_map(adv_map *m, player *p)
 	if (p->has_directions) dir = p->direction;
 	if (p->draw_movement) {
 		animation_render(p->animation_moving[dir],
-		    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
-		    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
+		    p->xx - start_x,
+		    p->yy - start_y);
 	} else {
 		animation_render(p->animation_stopped[dir],
-		    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
-		    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
+		    p->xx - start_x,
+		    p->yy - start_y);
 	}
 
 	adv_monster *monster;
@@ -443,17 +377,18 @@ render_map(adv_map *m, player *p)
 		if (monster->has_directions) dir = monster->direction;
 		else dir = 0;
 
-		if (monster->tile_x >= start_x && monster->tile_x <= end_x &&
-		    monster->tile_y >= start_y && monster->tile_y <= end_y)
+		if (monster->xx >= start_x && monster->xx <= end_x &&
+		    monster->yy >= start_y && monster->yy <= end_y) {
 			if (monster->draw_movement) {
 				animation_render(monster->animation_moving[dir],
-				    monster->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
-				    monster->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
+				    monster->xx - start_x,
+				    monster->yy - start_y);
 			} else {
 				animation_render(monster->animation_stopped[dir],
-				    monster->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
-				    monster->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
+				    monster->xx - start_x,
+				    monster->yy - start_y);
 			}
+		}
 	}
 	/* Return 1 if we've actually done something */
 	return 1;
