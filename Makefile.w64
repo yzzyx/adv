@@ -2,7 +2,7 @@ CFLAGS+=-I./w64/python/include -g -Wall -D WIN32 -D MS_WIN64 -I./w64/SDL2/includ
 LDFLAGS+=-L./w64/python/libs -L./w64/SDL2/lib
 LIBS=-lpython27 -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
 DEPS=$(patsubst %.c, %.d, $(SRCS))
-OBJS=python.o main.o sdl.o animation.o map.o player.o astar.o
+OBJS=python.o main.o sdl.o animation.o map.o player.o astar.o gamestate.o
 
 .PHONY: all clean dist
 

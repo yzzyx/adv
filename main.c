@@ -4,6 +4,7 @@
 #include "map.h"
 #include "python.h"
 #include "astar.h"
+#include "gamestate.h"
 
 player *main_player;
 
@@ -73,7 +74,7 @@ int main(int argc, char *argv[])
 	animation_init();
 	setup_python(argc, argv);
 
-	if ((m= get_map("level1")) == NULL) {
+	if ((m=get_map("level1")) == NULL) {
 		printf("No map!\n");
 		SDL_Quit();
 		return -1;
@@ -84,9 +85,11 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-
+	gamestate_init();
 	fps_init();
 	pathfinder_setup(m->width, m->height);
+
+	global_GS.current_map = m;
 
 	p->xx = p->tile_x * FRAME_WIDTH;
 	p->yy = p->tile_y * FRAME_HEIGHT;
@@ -95,7 +98,6 @@ int main(int argc, char *argv[])
 	p->map = m;
 	printf("main: player animation: %d\n", p->animation_stopped[0]);
 
-	animation_set_spritesheet_blendmode(p->spritesheet, SDL_BLENDMODE_BLEND);
 	main_player = p;
 
 	int quit = 0;
@@ -109,6 +111,7 @@ int main(int argc, char *argv[])
 		if (fps_limit())
 			fps_update();
 
+		gamestate_update();
 		if (p->is_dirty) py_update_monster_from_c(p);
 		update_map_monsters(m);
 		if (render_map(m, p)) {
