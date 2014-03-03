@@ -426,11 +426,13 @@ render_map(adv_map *m, player *p)
 
 	int dir = 0;
 	if (p->has_directions) dir = p->direction;
-	if (p->in_movement) {
+	if (p->draw_movement) {
+		printf("%d\n", p->animation_moving[dir]);
 		animation_render(p->animation_moving[dir],
 		    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
 		    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
 	} else {
+		printf("%d\n", p->animation_stopped[dir]);
 		animation_render(p->animation_stopped[dir],
 		    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
 		    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);

@@ -12,6 +12,7 @@ typedef struct t_adv_monster {
 	int tile_x; /* Position on map */
 	int tile_y;
 	int in_movement;
+	int draw_movement;
 
 	/* Where is it heading? */
 	int target_tile_x;
