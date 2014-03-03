@@ -104,29 +104,25 @@ int move_player(player *p)
 	if (p->target_tile_y < 0) p->target_tile_y = 0;
 	if (p->target_tile_x > p->map->width - 1) p->target_tile_x = p->map->width - 1;
 	if (p->target_tile_y > p->map->height - 1) p->target_tile_y = p->map->height - 1;
-	/* FIXME - walking into an enemy, is that the same as attacking them?
-	   */
-	if (map_tile_is_walkable(p->map, p->target_tile_x, p->target_tile_y) == 0) {
-		printf("tile %d,%d is not walkable!\n", p->target_tile_x,
-		    p->target_tile_y);
-		p->target_tile_x = p->tile_x;
-		p->target_tile_y = p->tile_y;
-		return 0;
-	}
 
+	printf("%d,%d ---> %d,%d\n", p->tile_x, p->tile_y, p->target_tile_x,
+	    p->target_tile_y);
 	if (p->target_tile_x == p->tile_x  && p->target_tile_y == p->tile_y)
 		return 0;
 
 	dir = p->direction;
-	if (p->target_tile_x == p->tile_x && p->target_tile_y == p->tile_y - 1)
-		dir = DIRECTION_UP;
-	else if (p->target_tile_x == p->tile_x  && p->target_tile_y == p->tile_y + 1)
-		dir = DIRECTION_DOWN;
-	else if (p->target_tile_x == p->tile_x - 1 && p->target_tile_y == p->tile_y)
-		dir = DIRECTION_LEFT;
-	else if (p->target_tile_x == p->tile_x + 1 && p->target_tile_y == p->tile_y)
-		dir = DIRECTION_RIGHT;
-	else {
+	/*
+	if (map_is_walkable(p, p->map, p->target_tile_x, p->target_tile_y)) {
+		if (p->target_tile_x == p->tile_x && p->target_tile_y == p->tile_y - 1)
+			dir = DIRECTION_UP;
+		else if (p->target_tile_x == p->tile_x  && p->target_tile_y == p->tile_y + 1)
+			dir = DIRECTION_DOWN;
+		else if (p->target_tile_x == p->tile_x - 1 && p->target_tile_y == p->tile_y)
+			dir = DIRECTION_LEFT;
+		else if (p->target_tile_x == p->tile_x + 1 && p->target_tile_y == p->tile_y)
+			dir = DIRECTION_RIGHT;
+	} else {
+	*/
 		int x2, y2;
 
 		x2 = p->target_tile_x;
@@ -138,15 +134,18 @@ int move_player(player *p)
 			printf("target changed\n");
 			p->target_tile_x = x2;
 			p->target_tile_y = y2;
-		//	p->is_dirty = 1;
+			p->is_dirty = 1;
 		}
+
+		if (p->target_tile_x == p->tile_x  && p->target_tile_y == p->tile_y)
+			return 0;
 
 		/* FIXME - store path somewhere, and don't use these conversions */
 		if (dir_chr == 'N') { dir = DIRECTION_UP; }
 		else if (dir_chr == 'S') { dir = DIRECTION_DOWN; }
 		else if (dir_chr == 'E') { dir = DIRECTION_LEFT; }
 		else if (dir_chr == 'W') { dir = DIRECTION_RIGHT; }
-	}
+	//}
 
 	if (dir == DIRECTION_UP) { my = -1; }
 	else if (dir == DIRECTION_DOWN) { my = 1; }

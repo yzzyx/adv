@@ -511,6 +511,10 @@ map_is_walkable(adv_monster *m, adv_map *map, int x, int y)
 	if (map->tiles[x+y*map->width]->walkable == 0)
 		return 0;
 
+	/* Allow the user to go to it's own location */
+	if (x == m->tile_x && y == m->tile_y)
+		return 1;
+
 	/* FIXME - don't use global player */
 	if (m != main_player &&
 	    main_player->tile_x == x && main_player->tile_y == y)
