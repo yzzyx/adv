@@ -106,8 +106,6 @@ int move_player(player *p)
 	if (p->target_tile_x > p->map->width - 1) p->target_tile_x = p->map->width - 1;
 	if (p->target_tile_y > p->map->height - 1) p->target_tile_y = p->map->height - 1;
 
-	printf("%d,%d ---> %d,%d\n", p->tile_x, p->tile_y, p->target_tile_x,
-	    p->target_tile_y);
 	if (p->target_tile_x == p->tile_x  && p->target_tile_y == p->tile_y)
 		return 0;
 
@@ -132,7 +130,8 @@ int move_player(player *p)
 
 		if (x2 != p->target_tile_x ||
 		    y2 != p->target_tile_y) {
-			printf("target changed\n");
+			printf("target changed (%d,%d) -> (%d,%d)\n",
+			    p->target_tile_x, p->target_tile_y, x2, y2);
 			p->target_tile_x = x2;
 			p->target_tile_y = y2;
 			p->is_dirty = 1;
