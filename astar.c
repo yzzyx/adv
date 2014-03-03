@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <math.h>
 #include "map.h"
+#include "common.h"
 
 #undef DEBUG
 #define _log(...)
@@ -619,17 +620,17 @@ get_first_direction(node_t *node)
 	char dir;
 
 	if (node->parent == NULL)
-		return ' ';
+		return -1;
 	/* Go to first node */
 	while (node->parent && node->parent->parent) {
 		node = node->parent;
 	}
 
-	if (node->parent->x > node->x) { dir = 'E'; }
-	else if (node->parent->x < node->x) { dir = 'W'; }
-	else if (node->parent->y > node->y) { dir = 'N'; }
-	else if (node->parent->y < node->y) { dir = 'S'; }
-	else { dir = ' '; }
+	if (node->parent->x > node->x) { dir = DIRECTION_LEFT; }
+	else if (node->parent->x < node->x) { dir = DIRECTION_RIGHT; }
+	else if (node->parent->y > node->y) { dir = DIRECTION_UP; }
+	else if (node->parent->y < node->y) { dir = DIRECTION_DOWN; }
+	else { dir = -1; }
 	
 	return dir;
 }

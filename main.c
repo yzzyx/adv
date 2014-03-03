@@ -8,7 +8,7 @@
 
 player *main_player;
 
-#define FPS_MAX 10
+#define FPS_MAX 60
 
 struct fps_data
 {
@@ -146,14 +146,12 @@ int main(int argc, char *argv[])
 
 
 		const uint8_t *keystate = SDL_GetKeyboardState(NULL);
-		if ((keystate[SDL_SCANCODE_UP] || keystate[SDL_SCANCODE_W]) &&
-		    p->in_movement == 0) { p->target_tile_y = p->tile_y - 1; }
-		if ((keystate[SDL_SCANCODE_DOWN] || keystate[SDL_SCANCODE_S]) &&
-		    p->in_movement == 0) { p->target_tile_y = p->tile_y + 1; }
-		if ((keystate[SDL_SCANCODE_LEFT] || keystate[SDL_SCANCODE_A]) &&
-		    p->in_movement == 0) { p->target_tile_x = p->tile_x - 1; }
-		if ((keystate[SDL_SCANCODE_RIGHT] || keystate[SDL_SCANCODE_D]) &&
-		    p->in_movement == 0) { p->target_tile_x = p->tile_x + 1; }
+		if (p->in_movement == 0) {
+			if ((keystate[SDL_SCANCODE_UP] || keystate[SDL_SCANCODE_W])) { p->target_tile_y = p->tile_y - 1; }
+			if ((keystate[SDL_SCANCODE_DOWN] || keystate[SDL_SCANCODE_S])) { p->target_tile_y = p->tile_y + 1; }
+			if ((keystate[SDL_SCANCODE_LEFT] || keystate[SDL_SCANCODE_A])) { p->target_tile_x = p->tile_x - 1; }
+			if ((keystate[SDL_SCANCODE_RIGHT] || keystate[SDL_SCANCODE_D])) { p->target_tile_x = p->tile_x + 1; }
+		}
 		if (keystate[SDL_SCANCODE_Q]) quit++;
 		if (keystate[SDL_SCANCODE_M]) {
 
