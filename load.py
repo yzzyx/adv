@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #from tiles import test
 import sys
+sys.path.append("./python/stdlib.zip")
 sys.path.append(".")
 
 DIRECTION_DOWN = 0

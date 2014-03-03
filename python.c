@@ -270,21 +270,24 @@ py_update_object_timer(adv_base_object *obj)
 int setup_python(int argc, char *argv[])
 {
 	PyObject *adv_module;
+
 	Py_SetProgramName(argv[0]);
+	Py_SetPythonHome(".\\python");
+
 	Py_Initialize();
 	
 	Py_InitModule("adv", methods);
 	adv_module = PyImport_ImportModule("adv");
-	PyImport_AddModule("adv");
 	if (adv_module == NULL) { PyErr_Print(); return -1; }
 
 	main_module = PyImport_AddModule("__main__");
 	main_dict = PyModule_GetDict(main_module);
 	if (main_module == NULL || main_dict == NULL) { PyErr_Print(); return -1; }
 
-	FILE *fp = fopen("load.py", "r");
-	PyObject *p = PyRun_File(fp, "load.py", Py_file_input, main_dict, main_dict);
-	fclose(fp);
+	PyObject *PyFileObject = PyFile_FromString("load.py", "r");
+	PyObject *p = PyRun_File(PyFile_AsFile(PyFileObject), "load.py", Py_file_input,
+	    main_dict, main_dict);
+	Py_DECREF(PyFileObject);
 
 	if (p == NULL)
 		PyErr_Print();
