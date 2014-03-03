@@ -131,6 +131,8 @@ int main(int argc, char *argv[])
 				if (!p->in_movement)
 					p->draw_movement = 0;
 			}
+
+			map_update_monster_animations(global_GS.current_map);
 		}
 
 		if (fps_data.frame_count % (FPS_MAX / 3) == 1) {

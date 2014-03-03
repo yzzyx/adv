@@ -427,12 +427,10 @@ render_map(adv_map *m, player *p)
 	int dir = 0;
 	if (p->has_directions) dir = p->direction;
 	if (p->draw_movement) {
-		printf("%d\n", p->animation_moving[dir]);
 		animation_render(p->animation_moving[dir],
 		    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
 		    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
 	} else {
-		printf("%d\n", p->animation_stopped[dir]);
 		animation_render(p->animation_stopped[dir],
 		    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
 		    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
@@ -447,9 +445,15 @@ render_map(adv_map *m, player *p)
 
 		if (monster->tile_x >= start_x && monster->tile_x <= end_x &&
 		    monster->tile_y >= start_y && monster->tile_y <= end_y)
-			animation_render(monster->animation_stopped[dir],
-			    monster->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
-			    monster->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
+			if (monster->draw_movement) {
+				animation_render(monster->animation_moving[dir],
+				    monster->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
+				    monster->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
+			} else {
+				animation_render(monster->animation_stopped[dir],
+				    monster->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
+				    monster->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
+			}
 	}
 	/* Return 1 if we've actually done something */
 	return 1;
@@ -535,4 +539,27 @@ map_is_walkable(adv_monster *m, adv_map *map, int x, int y)
 			return 0;
 	}
 	return 1;
+}
+
+int
+map_update_monster_animations(adv_map *map)
+{
+	adv_monster *monster;
+	int dir;
+
+	monster = map->monsters;
+	for (; monster != NULL; monster = (adv_monster *)monster->next) {
+		if (monster->has_directions) dir = monster->direction;
+		else dir = 0;
+
+		if (monster->draw_movement)
+			animation_next_clip(monster->animation_moving[dir]);
+		else
+			animation_next_clip(monster->animation_stopped[dir]);
+
+		if (!monster->in_movement)
+			monster->draw_movement = 0;
+	}
+	return 1;
+
 }
