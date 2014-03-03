@@ -9,10 +9,8 @@ class Map():
     objects = None
     has_directions = 0
 
-    def generate():
+    def generate(self):
         pass
 
-    def tick():
+    def tick(self):
         pass
- 
-
