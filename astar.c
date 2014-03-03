@@ -141,10 +141,10 @@ void node_pool_free()
 
 node_t *node_get_neighbour(node_t *node, char dir)
 {
-	if( dir == DIR_W ) return node_new_pos(node->x-1,node->y);
-	if( dir == DIR_E ) return node_new_pos(node->x+1,node->y);
-	if( dir == DIR_S ) return node_new_pos(node->x,node->y+1);
-	if( dir == DIR_N ) return node_new_pos(node->x,node->y-1);
+	if (dir == DIR_W) return node_new_pos(node->x-1,node->y);
+	if (dir == DIR_E) return node_new_pos(node->x+1,node->y);
+	if (dir == DIR_S) return node_new_pos(node->x,node->y+1);
+	if (dir == DIR_N) return node_new_pos(node->x,node->y-1);
 	return NULL;
 }
 
@@ -152,10 +152,10 @@ inline int manhattan(node_t *n1, node_t *n2)
 {
 	int abs_x, abs_y;
 
-	if( n1->x > n2->x ) abs_x = n1->x - n2->x;
+	if (n1->x > n2->x) abs_x = n1->x - n2->x;
 	else abs_x = n2->x - n1->x;
 
-	if( n1->y > n2->y ) abs_y = n1->y - n2->y;
+	if (n1->y > n2->y) abs_y = n1->y - n2->y;
 	else abs_y = n2->y - n1->y;
 
 	return abs_x + abs_y;
@@ -356,7 +356,7 @@ pathfinder_shutdown()
 }
 
 node_t *
-find_jump_node(adv_map *map, int dir,
+find_jump_node(adv_monster *m, int dir,
 		node_t *node, node_t *end_node)
 {
 	int steps;
@@ -400,50 +400,31 @@ find_jump_node(adv_map *map, int dir,
 					break;
 
 				/* JP 5 */
-				if (!map_is_walkable(map,x,ny-1))
-//				if (map->tiles[x+(ny-1)*map->width]->walkable == 0)
-//				if( map[x + (ny-1)*MAP_WIDTH] == '%' )
+				if (!map_is_walkable(m, m->map,x,ny-1))
 					break;
 
 				/* JP 1 */
 				if (x > 0 &&
-				     map_is_walkable(map, x-1, ny) &&
-				    !map_is_walkable(map, x-1, ny-1))
-//				        map->tiles[x-1+ ny*map->width]->walkable != 0 &&
-//					map->tiles[x-1+ (ny-1)*map->width]->walkable == 0)
-//					map[x-1 + ny*MAP_WIDTH] != '%' &&
-//					map[x-1 + (ny-1)*MAP_WIDTH] == '%' )
+				     map_is_walkable(m, m->map, x-1, ny) &&
+				    !map_is_walkable(m, m->map, x-1, ny-1))
 					break;
 
 				/* JP 2 */
 				if (x > 0 &&
-				   !map_is_walkable(map, x-1, ny+1) &&
-				    map_is_walkable(map, x-1, ny))
-//				    map->tiles[x-1 + (ny+1)*map->width]->walkable == 0 &&
-//				    map->tiles[x-1 + ny*map->width]->walkable != 0)
-
-//					map[x-1 + (ny+1)*MAP_WIDTH] == '%' &&
-//					map[x-1 + ny*MAP_WIDTH] != '%' )
+				   !map_is_walkable(m, m->map, x-1, ny+1) &&
+				    map_is_walkable(m, m->map, x-1, ny))
 					break;
 
 				/* JP 3 */
 				if (x < MAP_WIDTH - 1 &&
-				     map_is_walkable(map, x+1, ny) &&
-				    !map_is_walkable(map, x+1, ny-1))
-//				    map->tiles[x+1 + ny*map->width]->walkable != 0 &&
-//				    map->tiles[x+1 + (ny-1)*map->width]->walkable == 0)
-//					map[x+1 + ny*MAP_WIDTH] != '%' &&
-//					map[x+1 + (ny-1)*MAP_WIDTH] == '%' )
+				     map_is_walkable(m, m->map, x+1, ny) &&
+				    !map_is_walkable(m, m->map, x+1, ny-1))
 					break;
 
 				/* JP 4 */
 				if (x < MAP_WIDTH - 1 &&
-				   !map_is_walkable(map, x+1, ny+1) &&
-				    map_is_walkable(map, x+1, ny))
-//				    map->tiles[x+1 + (ny+1)*map->width]->walkable == 0 &&
-//				    map->tiles[x+1 + ny*map->width]->walkable != 0)
-//					map[x+1 + (ny+1)*MAP_WIDTH] == '%' &&
-//					map[x+1 + ny*MAP_WIDTH] != '%' )
+				   !map_is_walkable(m, m->map, x+1, ny+1) &&
+				    map_is_walkable(m, m->map, x+1, ny))
 					break;
 			}
 		break;
@@ -466,7 +447,7 @@ find_jump_node(adv_map *map, int dir,
 
 				jump_node.y = ny;
 
-				if (ny == map->height - 1)
+				if (ny == m->map->height - 1)
 					break;
 
 				/* If we pass over the end-node's y-coordinate,
@@ -476,49 +457,31 @@ find_jump_node(adv_map *map, int dir,
 					break;
 
 				/* JP 5 */
-				//if (map->tiles[x + (ny+1)*map->width]->walkable == 0)
-				if (!map_is_walkable(map, x, ny+1))
-//				if( map[x + (ny+1)*MAP_WIDTH] == '%' )
+				if (!map_is_walkable(m, m->map, x, ny+1))
 					break;
 
 				/* JP 1 */
 				if (x > 0 &&
-				     map_is_walkable(map, x-1, ny) &&
-				    !map_is_walkable(map, x-1, ny+1))
-//				    map->tiles[x-1 + ny*map->width]->walkable != 0 &&
-//				    map->tiles[x-1 + (ny+1)*map->width]->walkable == 0)
-//					map[x-1 + ny*MAP_WIDTH] != '%' &&
-//					map[x-1 + (ny+1)*MAP_WIDTH] == '%' )
+				     map_is_walkable(m, m->map, x-1, ny) &&
+				    !map_is_walkable(m, m->map, x-1, ny+1))
 					break;
 
 				/* JP 2 */
 				if (x > 0 &&
-				   !map_is_walkable(map, x-1, ny-1) &&
-				    map_is_walkable(map, x-1, ny))
-//				    map->tiles[x-1 + (ny-1)*map->width]->walkable == 0 &&
-//				    map->tiles[x-1 + ny*map->width]->walkable != 0)
-//					map[x-1 + (ny-1)*MAP_WIDTH] == '%' &&
-//					map[x-1 + ny*MAP_WIDTH] != '%' )
+				   !map_is_walkable(m, m->map, x-1, ny-1) &&
+				    map_is_walkable(m, m->map, x-1, ny))
 					break;
 
 				/* JP 3 */
 				if (x < MAP_WIDTH - 1 &&
-				     map_is_walkable(map, x+1, ny) &&
-				    !map_is_walkable(map, x+1, ny+1))
-//				    map->tiles[x+1 + ny*map->width]->walkable != 0 &&
-//				    map->tiles[x+1 + (ny+1)*map->width]->walkable == 0)
-//					map[x+1 + ny*MAP_WIDTH] != '%' &&
-//					map[x+1 + (ny+1)*MAP_WIDTH] == '%' )
+				     map_is_walkable(m, m->map, x+1, ny) &&
+				    !map_is_walkable(m, m->map, x+1, ny+1))
 					break;
 
 				/* JP 4 */
 				if (x < MAP_WIDTH - 1 &&
-				   !map_is_walkable(map, x+1, ny-1) &&
-				    map_is_walkable(map, x+1, ny))
-//				    map->tiles[x+1 + (ny-1)*map->width]->walkable == 0 &&
-//				    map->tiles[x+1 + ny*map->width]->walkable != 0)
-//					map[x+1 + (ny-1)*MAP_WIDTH] == '%' &&
-//					map[x+1 + ny*MAP_WIDTH] != '%' )
+				   !map_is_walkable(m, m->map, x+1, ny-1) &&
+				    map_is_walkable(m, m->map, x+1, ny))
 					break;
 			}
 		break;
@@ -542,7 +505,7 @@ find_jump_node(adv_map *map, int dir,
 
 				jump_node.x = nx;
 
-				if (nx == map->width - 1)
+				if (nx == m->map->width - 1)
 					break;
 
 				/* If we pass over the end-node's x-coordinate,
@@ -552,49 +515,31 @@ find_jump_node(adv_map *map, int dir,
 					break;
 
 				/* JP 5 */
-//				if (map[nx+1 + y*MAP_WIDTH] == '%' )
-//				if (map->tiles[nx + 1 + y*map->width]->walkable == 0)
-				if (!map_is_walkable(map, nx+1, y))
+				if (!map_is_walkable(m, m->map, nx+1, y))
 					break;
 
 				/* JP 1 */
 				if (y > 0 &&
-				     map_is_walkable(map, nx  , y-1) &&
-				    !map_is_walkable(map, nx+1, y-1))
-//					map->tiles[nx + (y-1)*map->width]->walkable != 0 &&
-//				        map->tiles[nx+1 + (y-1)*map->width]->walkable == 0)
-//					map[nx   + (y-1)*MAP_WIDTH] != '%' &&
-//					map[nx+1 + (y-1)*MAP_WIDTH] == '%' )
+				     map_is_walkable(m, m->map, nx  , y-1) &&
+				    !map_is_walkable(m, m->map, nx+1, y-1))
 					break;
 
 				/* JP 2 */
 				if (y > 0 &&
-				   !map_is_walkable(map, nx-1, y-1) &&
-				    map_is_walkable(map, nx  , y-1))
-//				    map->tiles[nx-1 + (y-1)*map->width]->walkable == 0 &&
-//				    map->tiles[nx   + (y-1)*map->width]->walkable != 0)
-//					map[nx-1 + (y-1)*MAP_WIDTH] == '%' &&
-//					map[nx   + (y-1)*MAP_WIDTH] != '%' )
+				   !map_is_walkable(m, m->map, nx-1, y-1) &&
+				    map_is_walkable(m, m->map, nx  , y-1))
 					break;
 
 				/* JP 3 */
 				if (y < MAP_HEIGHT - 1 &&
-				     map_is_walkable(map, nx  , y+1) &&
-				    !map_is_walkable(map, nx+1, y+1))
-//  				    map->tiles[nx   + (y+1)*map->width]->walkable != 0 &&
-//				    map->tiles[nx+1 + (y+1)*map->width]->walkable == 0)
-//					map[nx   + (y+1)*MAP_WIDTH] != '%' &&
-//					map[nx+1 + (y+1)*MAP_WIDTH] == '%' )
+				     map_is_walkable(m, m->map, nx  , y+1) &&
+				    !map_is_walkable(m, m->map, nx+1, y+1))
 					break;
 
 				/* JP 4 */
 				if (y < MAP_HEIGHT - 1 &&
-				   !map_is_walkable(map, nx-1, y+1) &&
-				    map_is_walkable(map, nx  , y+1))
-//				    map->tiles[nx-1 + (y+1)*map->width]->walkable == 0 &&
-//				    map->tiles[nx   + (y+1)*map->width]->walkable != 0)
-//					map[nx-1 + (y+1)*MAP_WIDTH] == '%' &&
-//					map[nx   + (y+1)*MAP_WIDTH] != '%' )
+				   !map_is_walkable(m, m->map, nx-1, y+1) &&
+				    map_is_walkable(m, m->map, nx  , y+1))
 					break;
 			}
 		break;
@@ -628,56 +573,38 @@ find_jump_node(adv_map *map, int dir,
 					break;
 
 				/* JP 5 */
-//				if (map[nx-1 + y*MAP_WIDTH] == '%' )
-//				if (map->tiles[nx-1 + y*map->width]->walkable == 0)
-				if (!map_is_walkable(map, nx-1, y))
+				if (!map_is_walkable(m, m->map, nx-1, y))
 					break;
 
 				/* JP 1 */
 				if (y > 0 &&
-				     map_is_walkable(map, nx  , y-1) &&
-				    !map_is_walkable(map, nx-1, y-1))
-//				    map->tiles[nx   + (y-1)*map->width]->walkable != 0 &&
-//				    map->tiles[nx-1 + (y-1)*map->width]->walkable == 0)
-//					map[nx   + (y-1)*MAP_WIDTH] != '%' &&
-//					map[nx-1 + (y-1)*MAP_WIDTH] == '%' )
+				     map_is_walkable(m, m->map, nx  , y-1) &&
+				    !map_is_walkable(m, m->map, nx-1, y-1))
 					break;
 
 				/* JP 2 */
 				if (y > 0 &&
-				   !map_is_walkable(map, nx+1, y-1) &&
-				    map_is_walkable(map, nx  , y-1))
-//				    map->tiles[nx+1 + (y-1)*map->width]->walkable == 0 &&
-//				    map->tiles[nx   + (y-1)*map->width]->walkable != 0)
-//					map[nx+1 + (y-1)*MAP_WIDTH] == '%' &&
-//					map[nx   + (y-1)*MAP_WIDTH] != '%' )
+				   !map_is_walkable(m, m->map, nx+1, y-1) &&
+				    map_is_walkable(m, m->map, nx  , y-1))
 					break;
 
 				/* JP 3 */
 				if (y < MAP_HEIGHT - 1 &&
-				     map_is_walkable(map, nx  , y+1) &&
-				    !map_is_walkable(map, nx-1, y+1))
-//				    map->tiles[nx   + (y+1)*map->width]->walkable != 0 &&
-//				    map->tiles[nx-1 + (y+1)*map->width]->walkable == 0)
-//					map[nx   + (y+1)*MAP_WIDTH] != '%' &&
-//					map[nx-1 + (y+1)*MAP_WIDTH] == '%' )
+				     map_is_walkable(m, m->map, nx  , y+1) &&
+				    !map_is_walkable(m, m->map, nx-1, y+1))
 					break;
 
 				/* JP 4 */
 				if (y < MAP_HEIGHT - 1 &&
-				    map_is_walkable(map, nx+1, y+1) &&
-				   !map_is_walkable(map, nx  , y+1))
-//				    map->tiles[nx+1 + (y+1)*map->width]->walkable == 0 &&
-//				    map->tiles[nx   + (y+1)*map->width]->walkable != 0)
-//					map[nx+1 + (y+1)*MAP_WIDTH] == '%' &&
-//					map[nx   + (y+1)*MAP_WIDTH] != '%' )
+				    map_is_walkable(m, m->map, nx+1, y+1) &&
+				   !map_is_walkable(m, m->map, nx  , y+1))
 					break;
 			}
 		break;
 	}
 
-	if (jump_node.x < 0 || jump_node.x >= map->width ||
-		jump_node.y < 0 || jump_node.y >= map->height)
+	if (jump_node.x < 0 || jump_node.x >= m->map->width ||
+		jump_node.y < 0 || jump_node.y >= m->map->height)
 		return NULL;
 
 	/* Allocate a new node, and return it */
@@ -691,6 +618,8 @@ get_first_direction(node_t *node)
 {
 	char dir;
 
+	if (node->parent == NULL)
+		return ' ';
 	/* Go to first node */
 	while (node->parent && node->parent->parent) {
 		node = node->parent;
@@ -759,15 +688,53 @@ reconstruct_path(node_t *node)
 }
 
 int
-pathfinder(adv_map *map, int x1, int y1, int x2, int y2)
+pathfinder(adv_monster *m, int x1, int y1, int *x2_ptr, int *y2_ptr)
 {
 	node_t *start_node, *end_node;
 	node_t *node;
 	node_t *neighbour;
-	char *a_star_map;
 	int steps;
+	int x2, y2;
+
+	x2 = *x2_ptr;
+	y2 = *y2_ptr;
 
 	unsigned char temp_g_score;
+
+	/* If we can't go to target, check neighbours */
+	if (!map_is_walkable(m, m->map, x2, y2)) {
+		printf("Cannot walk to %d,%d\n", x2, y2);
+		int xmod = 0, ymod = 0;
+		int t; int i;
+		int dx = 0, dy = -1;
+
+		//int maxI = (8 * r * (r-1)) / 2;
+
+		for (i = 0; i < 8;i ++) {
+
+			if ((xmod == ymod) ||
+			    ((xmod < 0) && (xmod == -ymod)) ||
+			    ((xmod > 0) && (xmod == 1-ymod))) {
+				    t = dx;
+				    dx = -dy;
+				    dy = t;
+			}
+			xmod += dx;
+			ymod += dy;
+
+			printf("XXX: %d,%d\n", x2+xmod, y2+ymod);
+			if (map_is_walkable(m, m->map, x2+xmod, y2+ymod)) {
+				/* FIXME - do whole lap, then (if it exists)
+				 * pick the closest
+				 */
+				printf("try to go to %d,%d instead\n",
+				    x2+xmod, y2+ymod);
+				*x2_ptr = x2+xmod;
+				*y2_ptr = y2+ymod;
+				return pathfinder(m, x1, y2, x2_ptr, y2_ptr);
+			}
+		}
+	}
 
 	_log("Path from %d,%d -> %d,%d\n", x1, y1, x2, y2);
 //	print_map(map, MAP_WIDTH,MAP_HEIGHT);
@@ -785,9 +752,6 @@ pathfinder(adv_map *map, int x1, int y1, int x2, int y2)
 	/* Set all nodes t0 0 */
 	memset(node_type, 0, MAP_WIDTH*MAP_HEIGHT);
 
-	a_star_map = malloc(MAP_WIDTH*MAP_HEIGHT);
-	memcpy(a_star_map,map,MAP_WIDTH*MAP_HEIGHT);
-	
 	#define P(node) node->x + node->y*MAP_WIDTH
 
 	g_score[P(start_node)] = 0;
@@ -802,17 +766,14 @@ pathfinder(adv_map *map, int x1, int y1, int x2, int y2)
 	while (open_heap->heap_size) {
 		node = bin_heap_get_min(open_heap);
 		steps ++;
-		a_star_map[P(node)] = 'E';
 
 		if (node->x == end_node->x &&
 			node->y == end_node->y) {
 
 			return get_first_direction(node);
-//			return reconstruct_path(node);
 #ifdef DEBUG
 			int mx, my;
 			int nx, ny;
-			memcpy(a_star_map, map,MAP_WIDTH* MAP_HEIGHT);
 			while (node->parent) {
 				mx = 0; my = 0;
 				if (node->parent->x > node->x) mx = 1;
@@ -824,14 +785,10 @@ pathfinder(adv_map *map, int x1, int y1, int x2, int y2)
 					nx != node->parent->x ||
 					ny != node->parent->y;
 					nx += mx, ny += my) {
-					a_star_map[nx + ny*MAP_WIDTH] = 'x';
 				}
 				node = node->parent;
 
 			}
-			a_star_map[P(start_node)] = 'A';
-			a_star_map[P(end_node)] = 'B';
-//			print_map(a_star_map, MAP_WIDTH, MAP_HEIGHT);
 #endif
 			break;
 
@@ -841,12 +798,11 @@ pathfinder(adv_map *map, int x1, int y1, int x2, int y2)
 
 		/* Set type to CLOSED */
 		node_type[P(node)] = TYPE_CLOSED;
-		a_star_map[P(node)] = 'C';
 
 		int direction;
 
 		/* Look at node's neighbours */
-		for(direction=0;direction<4;direction++){
+		for (direction=0;direction<4;direction++) {
 			int x,y;
 
 			/* Don't walk off map */
@@ -861,7 +817,7 @@ pathfinder(adv_map *map, int x1, int y1, int x2, int y2)
 
 			/* Skip walls */
 //			if(map->tiles[x + y*map->width]->walkable == 0){
-			if(!map_is_walkable(map,x,y)) {
+			if (!map_is_walkable(m, m->map,x,y)) {
 				continue;
 			}
 
@@ -874,7 +830,7 @@ pathfinder(adv_map *map, int x1, int y1, int x2, int y2)
 				continue;
 
 			/* Find jump-points */
-			neighbour = find_jump_node(map, direction,  node, end_node);
+			neighbour = find_jump_node(m, direction,  node, end_node);
 
 			if (! neighbour)
 				continue;
@@ -882,7 +838,6 @@ pathfinder(adv_map *map, int x1, int y1, int x2, int y2)
 			if (neighbour->x < 0 || neighbour->x > MAP_WIDTH - 1 ||
 				neighbour->y < 0 || neighbour->y > MAP_HEIGHT - 1)
 				continue;
-			a_star_map[P(neighbour)] = 'N';
 
 			temp_g_score = g_score[P(node)] + neighbour->steps;
 			_log("(%.2d,%.2d) %c node %.2d,%.2d : g-score: %d (was %d) type: %s ",

@@ -496,21 +496,31 @@ int call_tick_map_objects(adv_map *m)
 }
 
 int
-map_is_walkable(adv_map *m, int x, int y)
+map_tile_is_walkable(adv_map *m, int x, int y)
 {
 
 	if (m->tiles[x+y*m->width]->walkable == 0)
 		return 0;
+	return 1;
+}
+
+int
+map_is_walkable(adv_monster *m, adv_map *map, int x, int y)
+{
+
+	if (map->tiles[x+y*map->width]->walkable == 0)
+		return 0;
 
 	/* FIXME - don't use global player */
-	if (main_player->tile_x == x && main_player->tile_y == y)
+	if (m != main_player &&
+	    main_player->tile_x == x && main_player->tile_y == y)
 		return 0;
 
 	adv_monster *monster;
 
-	monster = m->monsters;
+	monster = map->monsters;
 	for (; monster != NULL; monster = (adv_monster *)monster->next) {
-		if (monster->tile_x == x && monster->tile_y == y)
+		if (m != monster && monster->tile_x == x && monster->tile_y == y)
 			return 0;
 	}
 	return 1;

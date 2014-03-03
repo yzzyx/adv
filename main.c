@@ -7,7 +7,7 @@
 
 player *main_player;
 
-#define FPS_MAX 60
+#define FPS_MAX 10
 
 struct fps_data
 {
@@ -154,11 +154,6 @@ int main(int argc, char *argv[])
 		if (keystate[SDL_SCANCODE_M]) {
 
 			monster_gotoPosition(p, 5, 5);
-/*
-		path =  pathfinder(m, p->tile_x, p->tile_y, 5, 5);
-		printf("path: %s\n", path);
-		free(path);
-		*/
 		}
 	}
 	SDL_Quit();
