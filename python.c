@@ -103,9 +103,7 @@ PyObject *py_getDistance(PyObject *self, PyObject *args)
 PyObject *py_getPath(PyObject *self, PyObject *args)
 {
 	PyObject *monster;
-	adv_monster *m;
-	char *str;
-	int x1, y2;
+	int x1, y1;
 
 	if (!PyArg_ParseTuple(args, "oii", &monster, &x1, &y1)) {
 		printf("py_getPath():\n");
@@ -113,8 +111,10 @@ PyObject *py_getPath(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	m = monster_get_from_pyobj(monster);
 	/* FIXME, pathfinder() only returns next direction as of now
+	   adv_monster *m;
+	 char *str;
+	m = monster_get_from_pyobj(monster);
 	 str = pathfinder(m, m->tile_x, m->tile_y, x1, y1);
 	 PyObject *py_str = PyString_FromString(str);
 	 free(str);
@@ -146,7 +146,7 @@ PyObject *py_isVisible(PyObject *self, PyObject *args)
 	int isvisible;
 
 	m = monster_get_from_pyobj(monster);
-	isvisible = monster_position_is_visible(monster, x1, y1);
+	isvisible = monster_position_is_visible(m, x1, y1);
 	return PyBool_FromLong(isvisible);
 }
 
@@ -271,7 +271,7 @@ static PyMethodDef methods[] = {
     {"createAnimation",		py_animCreate,		METH_VARARGS, "create animation from spritesheet" },
     {"getPlayer",		py_getPlayer,		METH_VARARGS, "get the player object" },
     {"getDistance",		py_getDistance,		METH_VARARGS, "getDistace(x1,y2,x2,y2): get absolute distance from (x1,y1) to (x2,y2)" },
-    {"getWalkingDistance",	py_getDistance,		METH_VARARGS, "getWalkingDistance(x1,y2,x2,y2): get walking distance from (x1,y1) to (x2,y2)" },
+    {"getPath",			py_getPath,		METH_VARARGS, "getPath(monster,x2,y2): get walking path for monster to (x2,y2)" },
     {"isVisible",		py_isVisible,		METH_VARARGS, "isVisible(monster, x1, y1): Check if monster can see position x1,y1" },
 //    {"monster_gotoPosition", monster_gotoPosition, METH_VARARGS, "monster_gotoPosition" },
     {NULL, NULL, 0, NULL}
