@@ -1,3 +1,5 @@
+*.d
+*.exe
 *.pyc
 *.swp
 *.swo
