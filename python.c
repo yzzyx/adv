@@ -373,7 +373,9 @@ int setup_python(int argc, char *argv[])
 	PyObject *adv_module;
 
 	Py_SetProgramName(argv[0]);
-	Py_SetPythonHome(".\\python");
+#ifdef WIN32
+	Py_SetPythonHome("./python");
+#endif
 
 	Py_Initialize();
 	
