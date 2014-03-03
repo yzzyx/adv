@@ -4,35 +4,41 @@
 #include "player.h"
 #include "map.h"
 #include "python.h"
+#include "astar.h"
 
 PyObject *main_module;
 PyObject *main_dict;
 
-
+/*
+ * py_animLoadSpritesheet(): [animLoadSpritesheet(filename, useAlphaBlend = 1)]
+ *
+ * Load a spritesheet, with alpha if specified
+ */
 PyObject *py_animLoadSpritesheet(PyObject *self, PyObject *args)
 {
 	const char *filename;
 	int ss_id = 0;
+	int use_alpha = 1;
 
-	if (!PyArg_ParseTuple(args, "s", &filename)) {
+	if (!PyArg_ParseTuple(args, "s|i", &filename, &use_alpha)) {
 		printf("py_loadSpritesheet():\n");
 		PyErr_Print();
 		return NULL;
 	}
 
 	ss_id = animation_load_spritesheet(filename);
+	if (use_alpha)
+		animation_set_spritesheet_blendmode(ss_id, SDL_BLENDMODE_BLEND);
 
 	PyObject *py_ss = Py_BuildValue("i", ss_id);
-	/*PyDict_New();
-	PyDict_SetItemString(py_ss, "frames",
-	    Py_BuildValue("i", animation_spritesheet_get_n_sprites(ss_id)));
-	PyDict_SetItemString(py_ss, "id", Py_BuildValue("i", ss_id));
-	*/
-
-	printf("loadSpritesheet(%s): %d!\n",filename, ss_id);
 	return py_ss;
 }
 
+/*
+ * py_animCreate(): [animCreate(spritesheet_id, start_sprite, length)]
+ *
+ * Create an animation from a given spritesheet
+ */
 PyObject *py_animCreate(PyObject *self, PyObject *args)
 {
 	int ss_id;
@@ -52,11 +58,96 @@ PyObject *py_animCreate(PyObject *self, PyObject *args)
 	return py_ss;
 }
 
+/*
+ * py_getPlayer(): [getPlayer()]
+ *
+ * Returns the player object
+ */
 PyObject *py_getPlayer(PyObject *self, PyObject *args)
 {
 
 	Py_INCREF(main_player->py_obj);
 	return main_player->py_obj;
+}
+
+/*
+ * py_getDistance(): [getDistance(x1,y1,x2,y2)]
+ *
+ * Returns distance between two points
+ */
+PyObject *py_getDistance(PyObject *self, PyObject *args)
+{
+	int x1, y1, x2, y2;
+
+	if (!PyArg_ParseTuple(args, "iiii", &x1, &y1, &x2, &y2)) {
+		printf("py_getDistance():\n");
+		PyErr_Print();
+		return NULL;
+	}
+
+	int x, y;
+	x = abs(x1-x2);
+	y = abs(y1-y2);
+	PyObject *py_distance = Py_BuildValue("f", sqrtf(x*x + y*y));
+
+	return py_distance;
+}
+
+/*
+ * py_getPath(): [getPath(monster, x1, y1)]
+ *
+ * Called from python, returns walking path from the monsters current position
+ * to (x1,y1). Return value is a string, which can contain 4 different
+ * characters - N,E,S,W
+ */
+PyObject *py_getPath(PyObject *self, PyObject *args)
+{
+	PyObject *monster;
+	adv_monster *m;
+	char *str;
+	int x1, y2;
+
+	if (!PyArg_ParseTuple(args, "oii", &monster, &x1, &y1)) {
+		printf("py_getPath():\n");
+		PyErr_Print();
+		return NULL;
+	}
+
+	m = monster_get_from_pyobj(monster);
+	/* FIXME, pathfinder() only returns next direction as of now
+	 str = pathfinder(m, m->tile_x, m->tile_y, x1, y1);
+	 PyObject *py_str = PyString_FromString(str);
+	 free(str);
+	 */
+
+	PyObject *py_str = PyString_FromString("NESW");
+	return py_str;
+}
+
+/*
+ * py_isVisible(): [isVisible(monster, x, y)]
+ *
+ * Returns true if position (x,y) is visible for monster, otherwise false
+ *
+ */
+PyObject *py_isVisible(PyObject *self, PyObject *args)
+{
+	PyObject *monster;
+	int x1, y1;
+
+	if (!PyArg_ParseTuple(args, "oii", &monster, &x1, &y1)) {
+		printf("py_getPath():\n");
+		PyErr_Print();
+		return NULL;
+	}
+
+
+	adv_monster *m;
+	int isvisible;
+
+	m = monster_get_from_pyobj(monster);
+	isvisible = monster_position_is_visible(monster, x1, y1);
+	return PyBool_FromLong(isvisible);
 }
 
 int
@@ -176,9 +267,12 @@ py_new_monster_from_object(PyObject *obj)
 }
 
 static PyMethodDef methods[] = {
-    {"loadSpritesheet", py_animLoadSpritesheet, METH_VARARGS, "load spritesheet from file" },
-    {"createAnimation", py_animCreate, METH_VARARGS, "create animation from spritesheet" },
-    {"getPlayer", py_getPlayer, METH_VARARGS, "get the player object" },
+    {"loadSpritesheet",		py_animLoadSpritesheet, METH_VARARGS, "load spritesheet from file" },
+    {"createAnimation",		py_animCreate,		METH_VARARGS, "create animation from spritesheet" },
+    {"getPlayer",		py_getPlayer,		METH_VARARGS, "get the player object" },
+    {"getDistance",		py_getDistance,		METH_VARARGS, "getDistace(x1,y2,x2,y2): get absolute distance from (x1,y1) to (x2,y2)" },
+    {"getWalkingDistance",	py_getDistance,		METH_VARARGS, "getWalkingDistance(x1,y2,x2,y2): get walking distance from (x1,y1) to (x2,y2)" },
+    {"isVisible",		py_isVisible,		METH_VARARGS, "isVisible(monster, x1, y1): Check if monster can see position x1,y1" },
 //    {"monster_gotoPosition", monster_gotoPosition, METH_VARARGS, "monster_gotoPosition" },
     {NULL, NULL, 0, NULL}
 };
