@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import map
 from tiles.grass import Grass
+from maps.generator import RandomGrassGenerator
 from tiles.rock import Rock
 from monsters.gnome import Gnome
 
@@ -48,6 +49,9 @@ class level1(map.Map):
     height = 23
 
     def generate(self):
+        grassgen = RandomGrassGenerator()
+        grassgen.generateLevel(self)
+
         self.monsters = []
 
         self.monsters.append(Gnome(10, 10))
