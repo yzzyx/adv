@@ -110,6 +110,7 @@ int move(player *p, int direction)
 
 	p->direction = direction;
 	p->in_movement = 1;
+	p->draw_movement = 1;
 
 	int i;
 	for (i=0; i < p->speed; i ++) {

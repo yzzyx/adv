@@ -120,18 +120,20 @@ int main(int argc, char *argv[])
 
 //		render_map_monsters(m);
 //		render_map_objects(m);
-		move_player(p);
+
+		if (fps_data.frame_count % (10) == 1) {
+			if (p->draw_movement) {
+				int dir;
+				if (p->has_directions) dir = p->direction;
+				else dir = 0;
+				animation_next_clip(p->animation_moving[dir]);
+
+				if (!p->in_movement)
+					p->draw_movement = 0;
+			}
+		}
 
 		if (fps_data.frame_count % (FPS_MAX / 3) == 1) {
-			if (p->in_movement) {
-				animation_next_clip(p->animation_moving[0]);
-				if (p->has_directions) {
-					animation_next_clip(p->animation_moving[1]);
-					animation_next_clip(p->animation_moving[2]);
-					animation_next_clip(p->animation_moving[3]);
-				}
-			}
-
 			py_update_object_timer((adv_base_object*)p);
 			call_tick_map(m);
 			call_tick_map_monsters(m);
@@ -157,6 +159,8 @@ int main(int argc, char *argv[])
 
 			monster_gotoPosition(p, 5, 5);
 		}
+		
+		move_player(p);
 	}
 	SDL_Quit();
 	return 0;
