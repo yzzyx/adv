@@ -5,6 +5,7 @@
 #include "astar.h"
 #include "map.h"
 #include "python.h"
+#include "gamestate.h"
 
 #define TICK_LENGTH 3
 
@@ -195,4 +196,60 @@ monster_gotoPosition(player *p, int x, int y)
 	p->is_dirty = 1;
 
 	return 0;
+}
+
+adv_monster *
+monster_get_from_pyobj(PyObject *py_obj)
+{
+	adv_monster *monster;
+
+	monster = global_GS.current_map->monsters;
+	for (; monster != NULL; monster = (adv_monster *)monster->next) {
+		if (monster->py_obj == py_obj)
+			return monster;
+	}
+	return NULL;
+}
+
+int
+monster_position_is_visible(adv_monster *m, int map_x, int map_y)
+{
+	int dx = 0, dy = 0;
+	int x,y;
+	int sx, sy;
+	int err;
+	
+	dx = abs(m->tile_x-map_x);
+	dy = abs(m->tile_y-map_y);
+	if (map_x < m->tile_x) sx = 1; else sx = -1;
+	if (map_y < m->tile_y) sy = 1; else sy = -1;
+	err = dx-dy;
+	x = map_x;
+	y = map_y;
+
+	for(;;) {
+		if (global_GS.current_map->tiles[x+y*
+		    global_GS.current_map->width]->visibility == 0) {
+			if (!(x == map_x && y == map_y))
+				return 0;
+		}
+
+		if (x == m->tile_x && y == m->tile_y)
+			break;
+		int e2 = 2 * err;
+		if (e2 > -dy) {
+			err = err - dy;
+			x += sx;
+		}
+		if (x == m->tile_x && y == m->tile_y) {
+//			if (m->tiles[x+y*m->width]->visibility == 0)
+//				return 0;
+			break;
+		}
+		if (e2 < dx) {
+			err = err + dx;
+			y += sy;
+		}
+	}
+	return 1;
 }

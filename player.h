@@ -33,6 +33,8 @@ typedef struct t_adv_monster player;
 player *setup_player();
 int move_player(player *p);
 int monster_gotoPosition(player *p, int x, int y);
+adv_monster *monster_get_from_pyobj(PyObject *py);
+int monster_position_is_visible(adv_monster *m, int x, int y);
 
 extern player *main_player;
 
