@@ -52,4 +52,3 @@ int map_tile_is_walkable(adv_map *m, int x, int y);
 int map_is_walkable(adv_monster *m, adv_map *map, int x, int y);
 
 #endif /* end of include guard: MAP_H */
-

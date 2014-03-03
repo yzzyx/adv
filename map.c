@@ -424,12 +424,14 @@ render_map(adv_map *m, player *p)
 #endif
 	
 
+	int dir = 0;
+	if (p->has_directions) dir = p->direction;
 	if (p->in_movement) {
-		animation_render(p->animation_moving[p->direction],
+		animation_render(p->animation_moving[dir],
 		    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
 		    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
 	} else {
-		animation_render(p->animation_stopped[p->direction],
+		animation_render(p->animation_stopped[dir],
 		    p->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
 		    p->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
 	}
@@ -438,9 +440,12 @@ render_map(adv_map *m, player *p)
 
 	monster = m->monsters;
 	for (; monster != NULL; monster = (adv_monster *)monster->next) {
+		if (monster->has_directions) dir = monster->direction;
+		else dir = 0;
+
 		if (monster->tile_x >= start_x && monster->tile_x <= end_x &&
 		    monster->tile_y >= start_y && monster->tile_y <= end_y)
-			animation_render(monster->animation_stopped[monster->direction],
+			animation_render(monster->animation_stopped[dir],
 			    monster->xx - start_x * FRAME_WIDTH - map_scroll_x + screen_rect.x,
 			    monster->yy - start_y * FRAME_WIDTH - map_scroll_y + screen_rect.y);
 	}
