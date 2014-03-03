@@ -52,6 +52,12 @@ PyObject *py_animCreate(PyObject *self, PyObject *args)
 	return py_ss;
 }
 
+PyObject *py_getPlayer(PyObject *self, PyObject *args)
+{
+
+	Py_INCREF(main_player->py_obj);
+	return main_player->py_obj;
+}
 
 int
 pyobj_is_dirty(PyObject *obj)
@@ -172,6 +178,7 @@ py_new_monster_from_object(PyObject *obj)
 static PyMethodDef methods[] = {
     {"loadSpritesheet", py_animLoadSpritesheet, METH_VARARGS, "load spritesheet from file" },
     {"createAnimation", py_animCreate, METH_VARARGS, "create animation from spritesheet" },
+    {"getPlayer", py_getPlayer, METH_VARARGS, "get the player object" },
 //    {"monster_gotoPosition", monster_gotoPosition, METH_VARARGS, "monster_gotoPosition" },
     {NULL, NULL, 0, NULL}
 };
