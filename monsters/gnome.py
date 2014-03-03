@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import monster
+import adv
 
 class Gnome(monster.Monster):
     x = 10
@@ -10,10 +11,10 @@ class Gnome(monster.Monster):
     speed = 4
     timer = 4
     has_directions = 0
-    spritesheet = loadSpritesheet("player1.png")
+    spritesheet = adv.loadSpritesheet("player1.png")
 
-    animation_stopped = [ createAnimation(spritesheet, 0, 1) ];
-    animation_moving = [ createAnimation(spritesheet, 0, 5) ];
+    animation_stopped = [adv.createAnimation(spritesheet, 0, 1)]
+    animation_moving = [adv.createAnimation(spritesheet, 0, 5)]
 
     def tick(self):
         pass

@@ -283,8 +283,8 @@ int setup_python(int argc, char *argv[])
 
 	Py_Initialize();
 	
-	Py_InitModule("adv", methods);
-	adv_module = PyImport_ImportModule("adv");
+	Py_InitModule("_adv", methods);
+	adv_module = PyImport_ImportModule("_adv");
 	if (adv_module == NULL) { PyErr_Print(); return -1; }
 
 	main_module = PyImport_AddModule("__main__");

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import adv
 import monster
 
 class Player(monster.Monster):
@@ -10,19 +11,18 @@ class Player(monster.Monster):
     speed = 4
     timer = 4
     has_directions = 1
-    direction = DIRECTION_DOWN
+    direction = adv.DIRECTION_DOWN
 
-    spritesheet = loadSpritesheet("player.png")
+    spritesheet = adv.loadSpritesheet("player.png")
 
-    animation_stopped = [createAnimation(spritesheet, 0, 1),
-                         createAnimation(spritesheet, 5, 1),
-                         createAnimation(spritesheet, 10, 1),
-                         createAnimation(spritesheet, 15, 1),
-                         ];
-    animation_moving = [ createAnimation(spritesheet, 0, 5),
-                         createAnimation(spritesheet, 5, 5),
-                         createAnimation(spritesheet, 10, 5),
-                         createAnimation(spritesheet, 15, 5) ] ;
+    animation_stopped = [adv.createAnimation(spritesheet, 0, 1),
+                         adv.createAnimation(spritesheet, 5, 1),
+                         adv.createAnimation(spritesheet, 10, 1),
+                         adv.createAnimation(spritesheet, 15, 1)]
+    animation_moving = [adv.createAnimation(spritesheet, 0, 5),
+                        adv.createAnimation(spritesheet, 5, 5),
+                        adv.createAnimation(spritesheet, 10, 5),
+                        adv.createAnimation(spritesheet, 15, 5)]
 
     def tick(self):
         pass

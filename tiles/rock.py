@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import tile
+import adv
 
 class Rock(tile.Tile):
-    spritesheet = loadSpritesheet("rock1.png")
+    spritesheet = adv.loadSpritesheet("rock1.png")
     walkable = 0
     visibility = 0
 

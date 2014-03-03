@@ -18,6 +18,7 @@
 # lostPlayerVision()
 # isHit()
 #
+import adv
 
 class Monster():
     x = 0
@@ -30,7 +31,7 @@ class Monster():
     timer = -1
     is_dirty = 1
     has_directions = 1        # Monsters usually have 4 directions
-    direction = DIRECTION_DOWN;
+    direction = adv.DIRECTION_DOWN
 
     inventory = None
     spritesheet = None

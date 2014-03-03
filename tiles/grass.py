@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import tile
+import adv
 
 class Grass(tile.Tile):
-    spritesheet = loadSpritesheet("grass1.png")
+    spritesheet = adv.loadSpritesheet("grass1.png")
 
     counter = 0
 
