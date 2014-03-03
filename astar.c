@@ -722,7 +722,6 @@ pathfinder(adv_monster *m, int x1, int y1, int *x2_ptr, int *y2_ptr)
 			xmod += dx;
 			ymod += dy;
 
-			printf("XXX: %d,%d\n", x2+xmod, y2+ymod);
 			if (map_is_walkable(m, m->map, x2+xmod, y2+ymod)) {
 				/* FIXME - do whole lap, then (if it exists)
 				 * pick the closest
