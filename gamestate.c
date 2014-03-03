@@ -30,7 +30,7 @@ int gamestate_init()
 		PyErr_Print();
 		return -1;
 	}
-	if ((gs_def = PyObject_GetAttrString(module, "GameState")) == NULL) {
+	if ((gs_def = PyObject_GetAttrString(module, "Gamestate")) == NULL) {
 		PyErr_Print();
 		return -1;
 	}
