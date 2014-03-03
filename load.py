@@ -12,6 +12,7 @@ DIRECTION_RIGHT = 3
 import adv
 setattr(__builtins__, "loadSpritesheet", adv.loadSpritesheet)
 setattr(__builtins__, "createAnimation", adv.createAnimation)
+setattr(__builtins__, "getPlayer", adv.getPlayer)
 setattr(__builtins__, "DIRECTION_UP", DIRECTION_UP)
 setattr(__builtins__, "DIRECTION_LEFT", DIRECTION_LEFT)
 setattr(__builtins__, "DIRECTION_DOWN", DIRECTION_DOWN)

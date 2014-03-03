@@ -109,6 +109,7 @@ int main(int argc, char *argv[])
 		if (fps_limit())
 			fps_update();
 
+		if (p->is_dirty) py_update_monster_from_c(p);
 		update_map_monsters(m);
 		if (render_map(m, p)) {
 			SDL_UpdateWindowSurface(rs.win);
