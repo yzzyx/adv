@@ -18,9 +18,10 @@
 # lostPlayerVision()
 # isHit()
 #
+import random
 import adv
 
-class Monster():
+class Monster(object):
     x = 0
     y = 0
     target_x = 0
@@ -63,3 +64,15 @@ class Monster():
 
 #    def gotoPosition(self, x, y)
 #        monster_gotoPosition(self, x, y)
+
+class RandomAggro(object):
+    def getDistanceTo(self, x, y):
+        return abs(self.x - x) + abs(self.y - y)
+
+    def tick(self):
+        player = adv.getPlayer()
+        if self.getDistanceTo(player.x, player.y) < 6:
+            self.target_x, self.target_y = player.x, player.y
+        else:
+            self.target_x, self.target_y = self.x + random.randint(-1, 1), self.y + random.randint(-1, 1)
+        self.is_dirty = True
