@@ -32,12 +32,15 @@ typedef struct t_adv_monster {
 typedef struct t_adv_monster player;
 
 player *setup_player();
-int move_player(player *p);
-int monster_gotoPosition(player *p, int x, int y);
+int monster_move(adv_monster *p);
+
+int monster_goto_direction(adv_monster *p, int direction);
+int monster_goto_position(adv_monster *p, int x, int y);
+
 adv_monster *monster_get_from_pyobj(PyObject *py);
 int monster_position_is_visible(adv_monster *m, int x, int y);
 
-extern player *main_player;
+extern adv_monster *main_player;
 
 #endif /* end of include guard: PLAYER_H */
 

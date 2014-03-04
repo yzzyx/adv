@@ -105,7 +105,7 @@ PyObject *py_getPath(PyObject *self, PyObject *args)
 	PyObject *monster;
 	int x1, y1;
 
-	if (!PyArg_ParseTuple(args, "oii", &monster, &x1, &y1)) {
+	if (!PyArg_ParseTuple(args, "Oii", &monster, &x1, &y1)) {
 		printf("py_getPath():\n");
 		PyErr_Print();
 		return NULL;
@@ -135,7 +135,7 @@ PyObject *py_isVisible(PyObject *self, PyObject *args)
 	PyObject *monster;
 	int x1, y1;
 
-	if (!PyArg_ParseTuple(args, "oii", &monster, &x1, &y1)) {
+	if (!PyArg_ParseTuple(args, "Oii", &monster, &x1, &y1)) {
 		printf("py_getPath():\n");
 		PyErr_Print();
 		return NULL;
@@ -148,6 +148,55 @@ PyObject *py_isVisible(PyObject *self, PyObject *args)
 	m = monster_get_from_pyobj(monster);
 	isvisible = monster_position_is_visible(m, x1, y1);
 	return PyBool_FromLong(isvisible);
+}
+
+/*
+ * py_monster_gotoPosition(): [monster_gotoPosition(monster, x, y)]
+ *
+ * Monster will start walking towards (x,y)
+ *
+ */
+PyObject *py_monster_gotoPosition(PyObject *self, PyObject *args)
+{
+	PyObject *monster;
+	int x1, y1;
+
+	if (!PyArg_ParseTuple(args, "Oii", &monster, &x1, &y1)) {
+		printf("py_monster_gotoPosition():\n");
+		PyErr_Print();
+		return NULL;
+	}
+
+	adv_monster *m;
+
+	m = monster_get_from_pyobj(monster);
+	monster_goto_position(m, x1, y1);
+	return PyBool_FromLong(1);
+}
+
+/*
+ * py_monster_gotoDirection(): [monster_gotoDirection(monster, dir)]
+ *
+ * Monster will start walking in direction dir
+ *
+ */
+PyObject *py_monster_gotoDirection(PyObject *self, PyObject *args)
+{
+	PyObject *monster;
+	int dir;
+
+	if (!PyArg_ParseTuple(args, "Oi", &monster, &dir)) {
+		printf("py_monster_gotoDirection():\n");
+		PyErr_Print();
+		return NULL;
+	}
+
+	adv_monster *m;
+	int ret;
+
+	m = monster_get_from_pyobj(monster);
+	ret = monster_goto_direction(m, dir);
+	return PyBool_FromLong(ret);
 }
 
 int
@@ -231,8 +280,8 @@ py_update_monster(adv_monster *monster)
 	if (monster->yy % FRAME_WIDTH != monster->tile_x)
 		monster->yy = monster->tile_y * FRAME_WIDTH;
 
-	monster->target_tile_x = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_x"));
-	monster->target_tile_y = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_y"));
+//	monster->target_tile_x = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_x"));
+//	monster->target_tile_y = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_y"));
 	monster->speed = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "speed"));
 	PyObject_SetAttrString(monster->py_obj, "is_dirty", Py_BuildValue("i", 0));
 	return 0;
@@ -263,6 +312,9 @@ py_new_monster_from_object(PyObject *obj)
 	py_update_base_object((adv_base_object*)monster);
 	py_update_monster(monster);
 
+	monster->target_tile_x = monster->tile_x;
+	monster->target_tile_y = monster->tile_y;
+
 	return monster;
 }
 
@@ -273,6 +325,8 @@ static PyMethodDef methods[] = {
     {"getDistance",		py_getDistance,		METH_VARARGS, "getDistace(x1,y2,x2,y2): get absolute distance from (x1,y1) to (x2,y2)" },
     {"getPath",			py_getPath,		METH_VARARGS, "getPath(monster,x2,y2): get walking path for monster to (x2,y2)" },
     {"isVisible",		py_isVisible,		METH_VARARGS, "isVisible(monster, x1, y1): Check if monster can see position x1,y1" },
+    {"monster_gotoPosition",	py_monster_gotoPosition,METH_VARARGS, "monster_gotoPosition(monster, x1, y1): monster should start walking towards (x,y) (if possible)" },
+    {"monster_gotoDirection",	py_monster_gotoDirection,METH_VARARGS, "monster_gotoDirection(monster, direction): monster should start walking in direction (if possible)" },
 //    {"monster_gotoPosition", monster_gotoPosition, METH_VARARGS, "monster_gotoPosition" },
     {NULL, NULL, 0, NULL}
 };

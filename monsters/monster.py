@@ -57,9 +57,12 @@ class Monster():
 
     def hpUpdate(self):
         pass
-    
+
     def mpUpdate(self):
         pass
 
-#    def gotoPosition(self, x, y)
-#        monster_gotoPosition(self, x, y)
+    def gotoPosition(self, x, y):
+        adv.monster_gotoPosition(self, x, y)
+
+    def gotoDirection(self, direction):
+        adv.monster_gotoDirection(self, direction)

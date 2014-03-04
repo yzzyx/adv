@@ -424,7 +424,7 @@ int update_map_monsters(adv_map *m)
 				py_update_monster(monster);
 			}
 		}
-		move_player(monster);
+		monster_move(monster);
 	}
 	return 0;
 }

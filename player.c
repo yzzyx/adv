@@ -85,14 +85,12 @@ player_map_is_walkable(player *p)
 
 }
 
-int move(player *p, int direction)
+int monster_move_direction_int(adv_monster *p, int direction)
 {
 	int mx = 0, my = 0;
 
 	/* Assume we will not move */
 	p->in_movement = 0;
-	if (direction == -1) /* Invalid direction */
-		return 0;
 
 	switch(direction) {
 		case DIRECTION_UP: mx = 0; my = -1; break;
@@ -100,6 +98,7 @@ int move(player *p, int direction)
 		case DIRECTION_LEFT: mx = -1; my = 0; break;
 		case DIRECTION_RIGHT: mx = 1; my = 0; break;
 		default:
+			return 0;
 			break;
 	}
 
@@ -141,7 +140,7 @@ int move(player *p, int direction)
  *
  * called each tick, updating the player's position
  */
-int move_player(player *p)
+int monster_move(player *p)
 {
 	int dir;
 	int x2, y2;
@@ -157,17 +156,17 @@ int move_player(player *p)
 		return 0;
 
 	if (p->mod_x != 0 || p->mod_y != 0)
-		return move(p, p->direction);
+		return monster_move_direction_int(p, p->direction);
 
-	if (p->target_tile_x == p->tile_x - 1 && p->target_tile_y == p->tile_y) return move(p, DIRECTION_LEFT);
-	if (p->target_tile_x == p->tile_x + 1 && p->target_tile_y == p->tile_y) return move(p, DIRECTION_RIGHT);
-	if (p->target_tile_x == p->tile_x && p->target_tile_y == p->tile_y - 1) return move(p, DIRECTION_UP);
-	if (p->target_tile_x == p->tile_x && p->target_tile_y == p->tile_y + 1) return move(p, DIRECTION_DOWN);
+	if (p->target_tile_x == p->tile_x - 1 && p->target_tile_y == p->tile_y) return monster_move_direction_int(p, DIRECTION_LEFT);
+	if (p->target_tile_x == p->tile_x + 1 && p->target_tile_y == p->tile_y) return monster_move_direction_int(p, DIRECTION_RIGHT);
+	if (p->target_tile_x == p->tile_x && p->target_tile_y == p->tile_y - 1) return monster_move_direction_int(p, DIRECTION_UP);
+	if (p->target_tile_x == p->tile_x && p->target_tile_y == p->tile_y + 1) return monster_move_direction_int(p, DIRECTION_DOWN);
 
 	x2 = p->target_tile_x;
 	y2 = p->target_tile_y;
 	dir = pathfinder(p, p->tile_x, p->tile_y, &x2, &y2);
-	return move(p, dir);
+	return monster_move_direction_int(p, dir);
 
 #if 0
 	/* FIXME! Call playerExit-method on tile we're leaving*/
@@ -186,9 +185,65 @@ int move_player(player *p)
 #endif
 }
 
+/*
+ * monster_goto_direction(m, d)
+ *
+ * Try to make monster walk in direction "d".
+ * Returns 1 if it's possible, or 0 otherwise
+ */
 int
-monster_gotoPosition(player *p, int x, int y)
+monster_goto_direction(adv_monster *p, int direction)
 {
+	int mx, my;
+	int target_x, target_y;
+
+	switch(direction) {
+		case DIRECTION_UP: mx = 0; my = -1; break;
+		case DIRECTION_DOWN: mx = 0; my = 1; break;
+		case DIRECTION_LEFT: mx = -1; my = 0; break;
+		case DIRECTION_RIGHT: mx = 1; my = 0; break;
+		default:
+			return 0;
+			break;
+	}
+
+	target_x = p->tile_x + mx;
+	target_y = p->tile_y + my;
+	if (target_x < 0) target_x = 0;
+	if (target_y < 0) target_y = 0;
+	if (target_x >= global_GS.current_map->width)
+		target_x = global_GS.current_map->width - 1;
+	if (target_y >= global_GS.current_map->height)
+		target_y = global_GS.current_map->height - 1;
+
+	/* Don't even try to walk where we can't */
+	if (!map_is_walkable(p, p->map, target_x, target_y))
+		return 0;
+
+	p->target_tile_x = target_x;
+	p->target_tile_y = target_y;
+	p->is_dirty = 1;
+
+	return 1;
+}
+
+
+/*
+ * monster_goto_position(m, x, y)
+ *
+ * Try to make monster walk to x, y
+ * Returns 1 if it's possible, or 0 otherwise
+ */
+int
+monster_goto_position(player *p, int x, int y)
+{
+	if (x < 0) x = 0;
+	if (y < 0) y = 0;
+	if (x >= global_GS.current_map->width)
+		x = global_GS.current_map->width - 1;
+	if (y >= global_GS.current_map->height)
+		y = global_GS.current_map->height - 1;
+
 	p->target_tile_x = x;
 	p->target_tile_y = y;
 	p->is_dirty = 1;

@@ -2,25 +2,23 @@
 # -*- coding: utf-8 -*-
 import monster
 import adv
+import random
 
 class Gnome(monster.Monster):
     x = 10
     y = 10
-    target_x = x
-    target_y = y
     speed = 4
-    timer = 4
+    timer = 1
     has_directions = 0
     spritesheet = adv.loadSpritesheet("player1.png")
 
     animation_stopped = [adv.createAnimation(spritesheet, 0, 1)]
-    animation_moving = [adv.createAnimation(spritesheet, 0, 5)]
+    animation_moving = [adv.createAnimation(spritesheet, 0, 1)]
 
     def tick(self):
-        pass
+        self.gotoDirection(random.randint(0, 4))
 
 """
-import random
 class GreenGoblin(monster.Monster):
     x = 10
     y = 10
