@@ -120,6 +120,7 @@ int monster_move_direction_int(adv_monster *p, int direction)
 		    p->mod_y == my * (SPRITE_SIZE>>1)) {
 			p->tile_x += mx;
 			p->tile_y += my;
+			p->is_dirty = 1;
 			p->mod_x = -p->mod_x;
 			p->mod_y = -p->mod_y;
 		}

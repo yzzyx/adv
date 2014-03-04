@@ -18,19 +18,27 @@ class Gnome(monster.Monster):
     def tick(self):
         self.gotoDirection(random.randint(0, 4))
 
-"""
 class GreenGoblin(monster.Monster):
     x = 10
     y = 10
     target_x = x
     target_y = y
-    speed = 4
+    speed = 1
     timer = 4
-    has_directions = 0
+    has_directions = 1
     spritesheet = adv.loadSpritesheet("green_goblin.png")
 
-    animation_stopped = [adv. createAnimation(spritesheet, 0, 1) ]
-    animation_moving = [adv.createAnimation(spritesheet, 0, 2) ]
+    animation_stopped = [adv.createAnimation(spritesheet, 0, 2),
+                         adv.createAnimation(spritesheet, 2, 2),
+                         adv.createAnimation(spritesheet, 4, 2),
+                         adv.createAnimation(spritesheet, 6, 2)]
+    animation_moving = [adv.createAnimation(spritesheet, 0, 2),
+                        adv.createAnimation(spritesheet, 2, 2),
+                        adv.createAnimation(spritesheet, 4, 2),
+                        adv.createAnimation(spritesheet, 6, 2)]
+
+    def getDistanceTo(self, x, y):
+        return abs(self.x - x) + abs(self.y - y)
 
     def tick(self):
         player = adv.getPlayer()
@@ -38,9 +46,48 @@ class GreenGoblin(monster.Monster):
             self.target_x, self.target_y = player.x, player.y
         else:
             self.target_x, self.target_y = self.x + random.randint(-1, 1), self.y + random.randint(-1, 1)
+            self.target_x = max(0, self.target_x)
+            self.target_y = max(0, self.target_y)
+            self.target_x = min(24, self.target_x)
+            self.target_y = min(32, self.target_y)
+        self.is_dirty = True
 
 
+class GreenGoblinKing(monster.Monster):
+    x = 10
+    y = 10
+    target_x = x
+    target_y = y
+    speed = 1
+    timer = 4
+    has_directions = 1
+    spritesheet = adv.loadSpritesheet("green_goblin_king.png")
 
+    animation_stopped = [adv.createAnimation(spritesheet, 0, 2),
+                         adv.createAnimation(spritesheet, 2, 2),
+                         adv.createAnimation(spritesheet, 4, 2),
+                         adv.createAnimation(spritesheet, 6, 2)]
+    animation_moving = [adv.createAnimation(spritesheet, 0, 2),
+                        adv.createAnimation(spritesheet, 2, 2),
+                        adv.createAnimation(spritesheet, 4, 2),
+                        adv.createAnimation(spritesheet, 6, 2)]
+
+    def getDistanceTo(self, x, y):
+        return abs(self.x - x) + abs(self.y - y)
+
+    def tick(self):
+        player = adv.getPlayer()
+        if self.getDistanceTo(player.x, player.y) < 6:
+            self.target_x, self.target_y = player.x, player.y
+        else:
+            self.target_x, self.target_y = self.x + random.randint(-1, 1), self.y + random.randint(-1, 1)
+            self.target_x = max(0, self.target_x)
+            self.target_y = max(0, self.target_y)
+            self.target_x = min(24, self.target_x)
+            self.target_y = min(32, self.target_y)
+        self.is_dirty = True
+
+"""
 class SwarmGoblin(monster.Monster):
     x = 10
     y = 10

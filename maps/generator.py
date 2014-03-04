@@ -1,4 +1,6 @@
 import random
+from monsters.gnome import GreenGoblin
+from monsters.woodsmen import CrazyLumberjack
 from tiles import grass
 
 class WeightedRandom:
@@ -22,11 +24,12 @@ class WeightedRandom:
 
 class MapGenerator:
     def generateLevel(self, m):
-        pass
+        return []
 
 
 class RandomGrassGenerator(MapGenerator):
     def generateLevel(self, m):
+        monsters = []
         for row_n, row in enumerate(m.tiles):
             for col_n, tile in enumerate(row):
                 if isinstance(tile, grass.Grass):
@@ -46,3 +49,7 @@ class RandomGrassGenerator(MapGenerator):
                     if col_n > 0:
                         wr.addChance(m.tiles[row_n][col_n - 1].__class__, 7)
                     m.tiles[row_n][col_n] = wr.choice()()
+
+                    if random.random() < 0.01:
+                        monsters.append([GreenGoblin, CrazyLumberjack][random.randint(0, 1)](col_n, row_n))
+        return monsters
