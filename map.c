@@ -377,8 +377,10 @@ render_map(adv_map *m, player *p)
 		if (monster->has_directions) dir = monster->direction;
 		else dir = 0;
 
-		if (monster->xx >= start_x && monster->xx <= end_x &&
-		    monster->yy >= start_y && monster->yy <= end_y) {
+		if (monster->xx - start_x >= 0 &&
+		    monster->xx - start_x < screen_width &&
+		    monster->yy - start_y >= 0 &&
+		    monster->yy - start_y < screen_height) {
 			if (monster->draw_movement) {
 				animation_render(monster->animation_moving[dir],
 				    monster->xx - start_x,
