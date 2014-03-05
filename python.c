@@ -115,7 +115,7 @@ PyObject *py_getPath(PyObject *self, PyObject *args)
 	   adv_monster *m;
 	 char *str;
 	m = monster_get_from_pyobj(monster);
-	 str = pathfinder(m, m->tile_x, m->tile_y, x1, y1);
+	 str = pathfinder(m, m->tile_x, m->tile_y, &x1, &y1);
 	 PyObject *py_str = PyString_FromString(str);
 	 free(str);
 	 */
@@ -211,10 +211,6 @@ py_update_base_object(adv_base_object *obj)
 	obj->timer = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "timer"));
 	obj->has_directions = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "has_directions"));
 
-	if (obj->has_directions)
-		obj->direction = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "direction"));
-	else
-		obj->direction = DIRECTION_UP;
 	return 0;
 }
 
@@ -275,11 +271,12 @@ py_update_monster(adv_monster *monster)
 	monster->tile_x = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "x"));
 	monster->tile_y = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "y"));
 
+/*
 	if (monster->xx % FRAME_WIDTH != monster->tile_x)
 		monster->xx = monster->tile_x * FRAME_WIDTH;
 	if (monster->yy % FRAME_WIDTH != monster->tile_x)
 		monster->yy = monster->tile_y * FRAME_WIDTH;
-
+*/
 //	monster->target_tile_x = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_x"));
 //	monster->target_tile_y = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_y"));
 	monster->speed = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "speed"));
@@ -294,6 +291,7 @@ py_update_monster_from_c(adv_monster *monster)
 	PyObject_SetAttrString(monster->py_obj, "mp", Py_BuildValue("i", monster->mp));
 	PyObject_SetAttrString(monster->py_obj, "x", Py_BuildValue("i", monster->tile_x));
 	PyObject_SetAttrString(monster->py_obj, "y", Py_BuildValue("i", monster->tile_y));
+
 	PyObject_SetAttrString(monster->py_obj, "target_x", Py_BuildValue("i", monster->target_tile_x));
 	PyObject_SetAttrString(monster->py_obj, "target_y", Py_BuildValue("i", monster->target_tile_y));
 	PyObject_SetAttrString(monster->py_obj, "speed", Py_BuildValue("i", monster->speed));
@@ -314,6 +312,10 @@ py_new_monster_from_object(PyObject *obj)
 
 	monster->target_tile_x = monster->tile_x;
 	monster->target_tile_y = monster->tile_y;
+	monster->queued_target_x = -1;
+	monster->queued_target_y = -1;
+	monster->xx = monster->tile_x * SPRITE_SIZE;
+	monster->yy = monster->tile_y * SPRITE_SIZE;
 
 	return monster;
 }
@@ -411,7 +413,12 @@ py_update_object_timer(adv_base_object *obj)
 		PyObject *tmp;
 		
 		tmp = PyObject_CallMethod(obj->py_obj, "tick", NULL);
-		Py_DECREF(tmp);
+		if (tmp == NULL) {
+			printf("PyObject_CallMethod(tick):");
+			PyErr_Print();
+		} else {
+			Py_DECREF(tmp);
+		}
 
 		/* Update time-counter */
 		obj->timer = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "timer"));
