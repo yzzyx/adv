@@ -388,10 +388,6 @@ render_map(adv_map *m, player *p)
 				    monster->xx - start_x,
 				    monster->yy - start_y);
 			}
-		} else {
-			printf("monster not shown %d,%d  %d,%d - %d,%d\n",
-			    monster->xx, monster->yy, start_x, start_y, end_x,
-			    end_y);
 		}
 	}
 	/* Return 1 if we've actually done something */
