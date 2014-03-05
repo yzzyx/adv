@@ -42,22 +42,21 @@ class GreenGoblin(monster.Monster):
 
     def tick(self):
         player = adv.getPlayer()
+
         if self.getDistanceTo(player.x, player.y) < 6:
-            self.target_x, self.target_y = player.x, player.y
+            self.gotoPosition(player.x, player.y)
         else:
-            self.target_x, self.target_y = self.x + random.randint(-1, 1), self.y + random.randint(-1, 1)
-            self.target_x = max(0, self.target_x)
-            self.target_y = max(0, self.target_y)
-            self.target_x = min(24, self.target_x)
-            self.target_y = min(32, self.target_y)
+            dirs = range(0,4)
+            random.shuffle(dirs)
+            for direction in dirs:
+                if self.gotoDirection(direction):
+                    break
         self.is_dirty = True
 
 
 class GreenGoblinKing(monster.Monster):
     x = 10
     y = 10
-    target_x = x
-    target_y = y
     speed = 1
     timer = 4
     has_directions = 1
@@ -78,13 +77,14 @@ class GreenGoblinKing(monster.Monster):
     def tick(self):
         player = adv.getPlayer()
         if self.getDistanceTo(player.x, player.y) < 6:
-            self.target_x, self.target_y = player.x, player.y
+            self.gotoPosition(player.x, player.y)
         else:
-            self.target_x, self.target_y = self.x + random.randint(-1, 1), self.y + random.randint(-1, 1)
-            self.target_x = max(0, self.target_x)
-            self.target_y = max(0, self.target_y)
-            self.target_x = min(24, self.target_x)
-            self.target_y = min(32, self.target_y)
+            dirs = range(0,4)
+            random.shuffle(dirs)
+            for direction in dirs:
+                if self.gotoDirection(direction):
+                    break
+            self.target_x, self.target_y = player.x, player.y
         self.is_dirty = True
 
 """

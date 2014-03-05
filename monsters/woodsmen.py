@@ -7,9 +7,7 @@ import adv
 class CrazyLumberjack(monster.Monster):
     x = 10
     y = 10
-    target_x = x
-    target_y = y
-    speed = 2
+    speed = 4
     timer = 2
     has_directions = 1
     spritesheet = adv.loadSpritesheet("crazy_lumberjack.png")
@@ -29,11 +27,11 @@ class CrazyLumberjack(monster.Monster):
     def tick(self):
         player = adv.getPlayer()
         if self.getDistanceTo(player.x, player.y) < 6:
-            self.target_x, self.target_y = player.x, player.y
+            self.gotoPosition(player.x, player.y)
         else:
-            self.target_x, self.target_y = self.x + random.randint(-1, 1), self.y + random.randint(-1, 1)
-            self.target_x = max(0, self.target_x)
-            self.target_y = max(0, self.target_y)
-            self.target_x = min(24, self.target_x)
-            self.target_y = min(32, self.target_y)
+            dirs = range(0,4)
+            random.shuffle(dirs)
+            for direction in dirs:
+                if self.gotoDirection(direction):
+                    break
         self.is_dirty = True
