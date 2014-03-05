@@ -475,8 +475,24 @@ map_is_walkable(adv_monster *m, int x, int y)
 
 	monster = map->monsters;
 	for (; monster != NULL; monster = (adv_monster *)monster->next) {
-		if (m != monster && monster->tile_x == x && monster->tile_y == y)
+		if (m == monster)
+			continue;
+		if (monster->tile_x == x && monster->tile_y == y)
 			return 0;
+
+		if (monster->in_movement) {
+			int mx = 0,my = 0;
+			switch(monster->direction) {
+				case DIRECTION_UP: mx = 0; my = -1; break;
+				case DIRECTION_DOWN: mx = 0; my = 1; break;
+				case DIRECTION_LEFT: mx = -1; my = 0; break;
+				case DIRECTION_RIGHT: mx = 1; my = 0; break;
+				default: break;
+			}
+
+			if (monster->tile_x + mx == x && monster->tile_y + my == y)
+				return 0;
+		}
 	}
 	return 1;
 }
