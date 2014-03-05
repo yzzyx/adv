@@ -4,6 +4,7 @@
 #include "map.h"
 #include "player.h"
 #include "sdl.h"
+#include "gamestate.h"
 
 #define USE_FOG 0
 int map_count = 0;
@@ -47,7 +48,6 @@ get_map(const char *map_name)
 
 	m = malloc(sizeof(adv_map));
 	memset(m, 0, sizeof(adv_map));
-
 
 	m->py_obj = map_inst;
 
@@ -388,6 +388,10 @@ render_map(adv_map *m, player *p)
 				    monster->xx - start_x,
 				    monster->yy - start_y);
 			}
+		} else {
+			printf("monster not shown %d,%d  %d,%d - %d,%d\n",
+			    monster->xx, monster->yy, start_x, start_y, end_x,
+			    end_y);
 		}
 	}
 	/* Return 1 if we've actually done something */
@@ -451,8 +455,11 @@ map_tile_is_walkable(adv_map *m, int x, int y)
 }
 
 int
-map_is_walkable(adv_monster *m, adv_map *map, int x, int y)
+map_is_walkable(adv_monster *m, int x, int y)
 {
+	adv_map *map;
+
+	map = global_GS.current_map;
 
 	if (map->tiles[x+y*map->width]->walkable == 0)
 		return 0;

@@ -7,6 +7,7 @@
 #include <math.h>
 #include "map.h"
 #include "common.h"
+#include "gamestate.h"
 
 #undef DEBUG
 #define _log(...)
@@ -401,31 +402,31 @@ find_jump_node(adv_monster *m, int dir,
 					break;
 
 				/* JP 5 */
-				if (!map_is_walkable(m, m->map,x,ny-1))
+				if (!map_is_walkable(m,x,ny-1))
 					break;
 
 				/* JP 1 */
 				if (x > 0 &&
-				     map_is_walkable(m, m->map, x-1, ny) &&
-				    !map_is_walkable(m, m->map, x-1, ny-1))
+				     map_is_walkable(m, x-1, ny) &&
+				    !map_is_walkable(m, x-1, ny-1))
 					break;
 
 				/* JP 2 */
 				if (x > 0 &&
-				   !map_is_walkable(m, m->map, x-1, ny+1) &&
-				    map_is_walkable(m, m->map, x-1, ny))
+				   !map_is_walkable(m, x-1, ny+1) &&
+				    map_is_walkable(m, x-1, ny))
 					break;
 
 				/* JP 3 */
 				if (x < MAP_WIDTH - 1 &&
-				     map_is_walkable(m, m->map, x+1, ny) &&
-				    !map_is_walkable(m, m->map, x+1, ny-1))
+				     map_is_walkable(m, x+1, ny) &&
+				    !map_is_walkable(m, x+1, ny-1))
 					break;
 
 				/* JP 4 */
 				if (x < MAP_WIDTH - 1 &&
-				   !map_is_walkable(m, m->map, x+1, ny+1) &&
-				    map_is_walkable(m, m->map, x+1, ny))
+				   !map_is_walkable(m, x+1, ny+1) &&
+				    map_is_walkable(m, x+1, ny))
 					break;
 			}
 		break;
@@ -448,7 +449,7 @@ find_jump_node(adv_monster *m, int dir,
 
 				jump_node.y = ny;
 
-				if (ny == m->map->height - 1)
+				if (ny == global_GS.current_map->height - 1)
 					break;
 
 				/* If we pass over the end-node's y-coordinate,
@@ -458,31 +459,31 @@ find_jump_node(adv_monster *m, int dir,
 					break;
 
 				/* JP 5 */
-				if (!map_is_walkable(m, m->map, x, ny+1))
+				if (!map_is_walkable(m, x, ny+1))
 					break;
 
 				/* JP 1 */
 				if (x > 0 &&
-				     map_is_walkable(m, m->map, x-1, ny) &&
-				    !map_is_walkable(m, m->map, x-1, ny+1))
+				     map_is_walkable(m, x-1, ny) &&
+				    !map_is_walkable(m, x-1, ny+1))
 					break;
 
 				/* JP 2 */
 				if (x > 0 &&
-				   !map_is_walkable(m, m->map, x-1, ny-1) &&
-				    map_is_walkable(m, m->map, x-1, ny))
+				   !map_is_walkable(m, x-1, ny-1) &&
+				    map_is_walkable(m, x-1, ny))
 					break;
 
 				/* JP 3 */
 				if (x < MAP_WIDTH - 1 &&
-				     map_is_walkable(m, m->map, x+1, ny) &&
-				    !map_is_walkable(m, m->map, x+1, ny+1))
+				     map_is_walkable(m, x+1, ny) &&
+				    !map_is_walkable(m, x+1, ny+1))
 					break;
 
 				/* JP 4 */
 				if (x < MAP_WIDTH - 1 &&
-				   !map_is_walkable(m, m->map, x+1, ny-1) &&
-				    map_is_walkable(m, m->map, x+1, ny))
+				   !map_is_walkable(m, x+1, ny-1) &&
+				    map_is_walkable(m, x+1, ny))
 					break;
 			}
 		break;
@@ -516,31 +517,31 @@ find_jump_node(adv_monster *m, int dir,
 					break;
 
 				/* JP 5 */
-				if (!map_is_walkable(m, m->map, nx+1, y))
+				if (!map_is_walkable(m, nx+1, y))
 					break;
 
 				/* JP 1 */
 				if (y > 0 &&
-				     map_is_walkable(m, m->map, nx  , y-1) &&
-				    !map_is_walkable(m, m->map, nx+1, y-1))
+				     map_is_walkable(m, nx  , y-1) &&
+				    !map_is_walkable(m, nx+1, y-1))
 					break;
 
 				/* JP 2 */
 				if (y > 0 &&
-				   !map_is_walkable(m, m->map, nx-1, y-1) &&
-				    map_is_walkable(m, m->map, nx  , y-1))
+				   !map_is_walkable(m, nx-1, y-1) &&
+				    map_is_walkable(m, nx  , y-1))
 					break;
 
 				/* JP 3 */
 				if (y < MAP_HEIGHT - 1 &&
-				     map_is_walkable(m, m->map, nx  , y+1) &&
-				    !map_is_walkable(m, m->map, nx+1, y+1))
+				     map_is_walkable(m, nx  , y+1) &&
+				    !map_is_walkable(m, nx+1, y+1))
 					break;
 
 				/* JP 4 */
 				if (y < MAP_HEIGHT - 1 &&
-				   !map_is_walkable(m, m->map, nx-1, y+1) &&
-				    map_is_walkable(m, m->map, nx  , y+1))
+				   !map_is_walkable(m, nx-1, y+1) &&
+				    map_is_walkable(m, nx  , y+1))
 					break;
 			}
 		break;
@@ -574,31 +575,31 @@ find_jump_node(adv_monster *m, int dir,
 					break;
 
 				/* JP 5 */
-				if (!map_is_walkable(m, m->map, nx-1, y))
+				if (!map_is_walkable(m, nx-1, y))
 					break;
 
 				/* JP 1 */
 				if (y > 0 &&
-				     map_is_walkable(m, m->map, nx  , y-1) &&
-				    !map_is_walkable(m, m->map, nx-1, y-1))
+				     map_is_walkable(m, nx  , y-1) &&
+				    !map_is_walkable(m, nx-1, y-1))
 					break;
 
 				/* JP 2 */
 				if (y > 0 &&
-				   !map_is_walkable(m, m->map, nx+1, y-1) &&
-				    map_is_walkable(m, m->map, nx  , y-1))
+				   !map_is_walkable(m, nx+1, y-1) &&
+				    map_is_walkable(m, nx  , y-1))
 					break;
 
 				/* JP 3 */
 				if (y < MAP_HEIGHT - 1 &&
-				     map_is_walkable(m, m->map, nx  , y+1) &&
-				    !map_is_walkable(m, m->map, nx-1, y+1))
+				     map_is_walkable(m, nx  , y+1) &&
+				    !map_is_walkable(m, nx-1, y+1))
 					break;
 
 				/* JP 4 */
 				if (y < MAP_HEIGHT - 1 &&
-				    map_is_walkable(m, m->map, nx+1, y+1) &&
-				   !map_is_walkable(m, m->map, nx  , y+1))
+				    map_is_walkable(m, nx+1, y+1) &&
+				   !map_is_walkable(m, nx  , y+1))
 					break;
 			}
 		break;
@@ -621,6 +622,7 @@ get_first_direction(node_t *node)
 
 	if (node->parent == NULL)
 		return -1;
+
 	/* Go to first node */
 	while (node->parent && node->parent->parent) {
 		node = node->parent;
@@ -702,8 +704,9 @@ pathfinder(adv_monster *m, int x1, int y1, int *x2_ptr, int *y2_ptr)
 
 	unsigned char temp_g_score;
 
+	_log("Path from %d,%d -> %d,%d\n", x1, y1, x2, y2);
 	/* If we can't go to target, check neighbours */
-	if (!map_is_walkable(m, m->map, x2, y2)) {
+	if (!map_is_walkable(m, x2, y2)) {
 		printf("Cannot walk to %d,%d\n", x2, y2);
 		int xmod = 0, ymod = 0;
 		int t; int i;
@@ -723,20 +726,17 @@ pathfinder(adv_monster *m, int x1, int y1, int *x2_ptr, int *y2_ptr)
 			xmod += dx;
 			ymod += dy;
 
-			if (map_is_walkable(m, m->map, x2+xmod, y2+ymod)) {
+			if (map_is_walkable(m, x2+xmod, y2+ymod)) {
 				/* FIXME - do whole lap, then (if it exists)
 				 * pick the closest
 				 */
-				printf("try to go to %d,%d instead\n",
-				    x2+xmod, y2+ymod);
 				*x2_ptr = x2+xmod;
 				*y2_ptr = y2+ymod;
-				return pathfinder(m, x1, y2, x2_ptr, y2_ptr);
+				return pathfinder(m, x1, y1, x2_ptr, y2_ptr);
 			}
 		}
 	}
 
-	_log("Path from %d,%d -> %d,%d\n", x1, y1, x2, y2);
 //	print_map(map, MAP_WIDTH,MAP_HEIGHT);
 
 	start_node = node_new_pos(x1, y1);
@@ -817,7 +817,7 @@ pathfinder(adv_monster *m, int x1, int y1, int *x2_ptr, int *y2_ptr)
 
 			/* Skip walls */
 //			if(map->tiles[x + y*map->width]->walkable == 0){
-			if (!map_is_walkable(m, m->map,x,y)) {
+			if (!map_is_walkable(m,x,y)) {
 				continue;
 			}
 

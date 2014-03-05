@@ -104,8 +104,9 @@ int monster_move_direction_int(adv_monster *p, int direction)
 
 	/* Don't even try to walk where we can't */
 	if (p->mod_x == 0 && p->mod_y == 0 &&
-	    !map_is_walkable(p, p->map, p->tile_x + mx, p->tile_y + my))
+	    !map_is_walkable(p, p->tile_x + mx, p->tile_y + my)) {
 		return 0;
+	}
 
 	p->direction = direction;
 	p->in_movement = 1;
@@ -127,6 +128,14 @@ int monster_move_direction_int(adv_monster *p, int direction)
 
 		if (p->mod_x == 0  && p->mod_y == 0) {
 			p->in_movement = 0;
+			if (p->queued_target_x != -1) {
+				p->target_tile_x = p->queued_target_x;
+				p->queued_target_x = -1;
+			}
+			if (p->queued_target_y != -1) {
+				p->target_tile_y = p->queued_target_y;
+				p->queued_target_y = -1;
+			}
 			break;
 		}
 	}
@@ -218,11 +227,16 @@ monster_goto_direction(adv_monster *p, int direction)
 		target_y = global_GS.current_map->height - 1;
 
 	/* Don't even try to walk where we can't */
-	if (!map_is_walkable(p, p->map, target_x, target_y))
+	if (!map_is_walkable(p, target_x, target_y))
 		return 0;
 
-	p->target_tile_x = target_x;
-	p->target_tile_y = target_y;
+	if (p->in_movement) {
+		p->queued_target_x = target_x;
+		p->queued_target_y = target_y;
+	} else {
+		p->target_tile_x = target_x;
+		p->target_tile_y = target_y;
+	}
 	p->is_dirty = 1;
 
 	return 1;
@@ -245,10 +259,14 @@ monster_goto_position(player *p, int x, int y)
 	if (y >= global_GS.current_map->height)
 		y = global_GS.current_map->height - 1;
 
-	p->target_tile_x = x;
-	p->target_tile_y = y;
+	if (p->in_movement) {
+		p->queued_target_x = x;
+		p->queued_target_y = y;
+	} else {
+		p->target_tile_x = x;
+		p->target_tile_y = y;
+	}
 	p->is_dirty = 1;
-
 	return 0;
 }
 

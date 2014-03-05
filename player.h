@@ -17,6 +17,8 @@ typedef struct t_adv_monster {
 	/* Where is it heading? */
 	int target_tile_x;
 	int target_tile_y;
+	int queued_target_x;
+	int queued_target_y;
 
 	int hp;
 	int mp;

@@ -49,7 +49,7 @@ int call_tick_map_monsters(adv_map *m);
 int call_tick_map_objects(adv_map *m);
 
 int map_tile_is_walkable(adv_map *m, int x, int y);
-int map_is_walkable(adv_monster *m, adv_map *map, int x, int y);
+int map_is_walkable(adv_monster *m, int x, int y);
 int map_update_monster_animations(adv_map *map);
 
 #endif /* end of include guard: MAP_H */
