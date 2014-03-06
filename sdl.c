@@ -31,7 +31,7 @@ SDL_Surface *surface_sdl(int w, int h)
 	return surface;
 }
 
-int setup_sdl()
+int setup_sdl(int window_size_x, int window_size_y)
 {
 
 	//Start SDL
@@ -42,15 +42,20 @@ int setup_sdl()
 	rs.win = SDL_CreateWindow("adv",
 	    SDL_WINDOWPOS_UNDEFINED,
 	    SDL_WINDOWPOS_UNDEFINED,
-	    640, 480,
+	    window_size_x, window_size_y,
 	    SDL_WINDOW_SHOWN);
 	if (rs.win == NULL) {
 		return -1;
 	}
 
-	if ((rs.screen = SDL_GetWindowSurface(rs.win)) == NULL) {
+	if ((rs.real_screen = SDL_GetWindowSurface(rs.win)) == NULL) {
 		return -1;
 	}
+
+	if ((rs.screen = surface_sdl(640,480)) == NULL) {
+		return -1;
+	}
+	SDL_SetSurfaceBlendMode(rs.screen, SDL_BLENDMODE_NONE);
 	printf("rs.screen in setup_sdl(): %p\n", rs.screen);
 	return 0;
 }

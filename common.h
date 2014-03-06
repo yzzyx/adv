@@ -39,6 +39,7 @@ typedef struct t_adv_base_object {
 
 typedef struct t_render_space {
 	SDL_Window *win;
+	SDL_Surface *real_screen;
 	SDL_Surface *screen;
 	SDL_Surface *map_surface;
 	int fog_tile;

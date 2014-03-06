@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 	player *p;
 	adv_map *m;
 	
-	if (setup_sdl() == -1) {
+	if (setup_sdl(1024,768) == -1) {
 		printf("setup_sdl(): -1\n");
 		return -1;
 	}
@@ -102,8 +102,22 @@ int main(int argc, char *argv[])
 
 	int quit = 0;
 	SDL_Event event;
+	SDL_Rect screen_clip;
+	SDL_Rect real_screen_clip;
 
 	render_map(m, p);
+
+	screen_clip.x = 0;
+	screen_clip.y = 0;
+	screen_clip.w = rs.screen->w;
+	screen_clip.h = rs.screen->h;
+
+	real_screen_clip.x = 0;
+	real_screen_clip.y = 0;
+	real_screen_clip.w = rs.real_screen->w;
+	real_screen_clip.h = rs.real_screen->h;
+
+	SDL_BlitScaled(rs.screen, &screen_clip, rs.real_screen, &real_screen_clip);
 	SDL_UpdateWindowSurface(rs.win);
 
 	while(!quit) {
@@ -115,6 +129,7 @@ int main(int argc, char *argv[])
 		if (p->is_dirty) py_update_monster_from_c(p);
 		update_map_monsters(m);
 		if (render_map(m, p)) {
+			SDL_BlitScaled(rs.screen, &screen_clip, rs.real_screen, &real_screen_clip);
 			SDL_UpdateWindowSurface(rs.win);
 		}
 
