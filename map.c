@@ -314,7 +314,6 @@ render_map(adv_map *m, player *p)
 
 	SDL_Rect clip;
 
-
 	map_width = m->width * SPRITE_SIZE;
 	map_height = m->height * SPRITE_SIZE;
 	screen_width = rs.screen->w;
@@ -392,8 +391,73 @@ render_map(adv_map *m, player *p)
 			}
 		}
 	}
+
+	/* Draw attack-direction */
+
+	float angle = atan2f(p->attack_target_x - p->tile_x,
+						 p->attack_target_y - p->tile_y) * 180/M_PI;
+
+	dir = -1;
+	/* Straight directions */
+	if (angle >   0 - 45.0/2 && angle <=   0 + 45.0/2) dir = DIRECTION_DOWN;
+	if (angle >  90 - 45.0/2 && angle <=  90 + 45.0/2) dir = DIRECTION_RIGHT;
+	if (angle > 180 - 45.0/2 && angle <= 180 + 45.0/2) dir = DIRECTION_UP;
+	if (angle > -90 - 45.0/2 && angle <= -90 + 45.0/2) dir = DIRECTION_LEFT;
+
+	/* Corner directions */
+	if (angle >   45 - 45.0/2 && angle <=   45 + 45.0/2) dir = 4; /* DOWN+RIGHT */
+	if (angle >  135 - 45.0/2 && angle <=  135 + 45.0/2) dir = 7; /* UP+RIGHT */
+	if (angle > -135 - 45.0/2 && angle <= -135 + 45.0/2) dir = 6; /* UP+LEFT */
+	if (angle >  -45 - 45.0/2 && angle <=  -45 + 45.0/2) dir = 5; /* DOWN+LEFT */
+
+	if (dir > -1)
+	animation_render_sprite(rs.attack_cursor_sprites, dir, p->xx - start_x, p->yy - start_y);
+
 	/* Return 1 if we've actually done something */
 	return 1;
+}
+
+int
+map_get_tile_position_from_screen(int screen_x, int screen_y, int *tile_x, int *tile_y)
+{
+	int start_x, start_y;
+	int screen_width, screen_height;
+	int map_width, map_height;
+
+	adv_map *m = global_GS.current_map;
+	adv_monster *p = main_player;
+
+	map_width = m->width * SPRITE_SIZE;
+	map_height = m->height * SPRITE_SIZE;
+	screen_width = rs.screen->w;
+	screen_height = rs.screen->h;
+
+	if (p->xx < screen_width / 2) {
+		start_x = 0;
+	} else if (p->xx > map_width - screen_width / 2) {
+		start_x = map_width - screen_width;
+	} else {
+		start_x = p->xx - screen_width / 2;
+	}
+
+	if (p->yy < screen_height / 2) {
+		start_y = 0;
+	} else if (p->yy > map_height - screen_height / 2) {
+		start_y = map_height - screen_height;
+	} else {
+		start_y = p->yy - screen_height / 2;
+	}
+
+
+	if (start_x < 0) start_x = 0;
+	if (start_y < 0) start_y = 0;
+
+	*tile_x = (screen_x - start_x) / SPRITE_SIZE /
+		((float)rs.real_screen->w / rs.screen->w);
+	*tile_y = (screen_y - start_y) / SPRITE_SIZE /
+		((float)rs.real_screen->h / rs.screen->h);
+	
+	return 0;
 }
 
 int
@@ -458,6 +522,9 @@ map_is_walkable(adv_monster *m, int x, int y)
 	adv_map *map;
 
 	map = global_GS.current_map;
+
+	if (x < 0 || y < 0) return 0;
+	if (x >= map->width || y >= map->height) return 0;
 
 	if (map->tiles[x+y*map->width]->walkable == 0)
 		return 0;

@@ -42,6 +42,7 @@ typedef struct t_adv_map {
 
 adv_map *get_map(const char *map_name);
 int render_map(adv_map *m, player *p);
+int map_get_tile_position_from_screen(int screen_x, int screen_y, int *tile_x, int *tile_y);
 
 int update_map_monsters(adv_map *m);
 int call_tick_map(adv_map *m);

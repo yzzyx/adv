@@ -43,6 +43,7 @@ typedef struct t_render_space {
 	SDL_Surface *screen;
 	SDL_Surface *map_surface;
 	int fog_tile;
+	int attack_cursor_sprites;
 }render_space;
 
 #endif /* end of include guard: COMMON_H */

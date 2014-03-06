@@ -61,18 +61,43 @@ fps_update()
 	SDL_SetWindowTitle(rs.win, str);
 }
 
+
+int
+mouse_move_event(SDL_Event *ev)
+{
+	int tx, ty;
+	map_get_tile_position_from_screen(ev->motion.x, ev->motion.y, &tx, &ty);
+
+	main_player->attack_target_x = tx;
+	main_player->attack_target_y = ty;
+	return 0;
+}
+
+int
+attack_event(SDL_Event *ev)
+{
+
+	int tx, ty;
+	map_get_tile_position_from_screen(ev->button.x, ev->button.y, &tx, &ty);
+	printf("button pressed @ %d,%d == tile %d,%d\n", ev->button.x, ev->button.y, tx, ty);
+
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	player *p;
 	adv_map *m;
 	
-	if (setup_sdl(1024,768) == -1) {
+	if (setup_sdl(1280,960) == -1) {
 		printf("setup_sdl(): -1\n");
 		return -1;
 	}
 	
 	animation_init();
 	setup_python(argc, argv);
+
+	rs.attack_cursor_sprites = animation_load_spritesheet("./img/attackcursor.png");
 
 	if ((m=get_map("level1")) == NULL) {
 		printf("No map!\n");
@@ -160,6 +185,15 @@ int main(int argc, char *argv[])
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 			       quit = 1;
+			}
+
+			if (event.type == SDL_MOUSEBUTTONDOWN) {
+				if (event.button.button == SDL_BUTTON_LEFT) {
+					attack_event(&event);
+				}
+			}
+			if (event.type == SDL_MOUSEMOTION) {
+				mouse_move_event(&event);
 			}
 		}
 

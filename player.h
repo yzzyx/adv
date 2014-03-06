@@ -20,6 +20,9 @@ typedef struct t_adv_monster {
 	int queued_target_x;
 	int queued_target_y;
 
+	int attack_target_x;
+	int attack_target_y;
+
 	int hp;
 	int mp;
 	int speed;
