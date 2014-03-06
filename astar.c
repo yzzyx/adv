@@ -507,7 +507,7 @@ find_jump_node(adv_monster *m, int dir,
 
 				jump_node.x = nx;
 
-				if (nx == m->map->width - 1)
+				if (nx == global_GS.current_map->width - 1)
 					break;
 
 				/* If we pass over the end-node's x-coordinate,
@@ -605,8 +605,8 @@ find_jump_node(adv_monster *m, int dir,
 		break;
 	}
 
-	if (jump_node.x < 0 || jump_node.x >= m->map->width ||
-		jump_node.y < 0 || jump_node.y >= m->map->height)
+	if (jump_node.x < 0 || jump_node.x >= global_GS.current_map->width ||
+		jump_node.y < 0 || jump_node.y >= global_GS.current_map->height)
 		return NULL;
 
 	/* Allocate a new node, and return it */
