@@ -13,16 +13,17 @@ class Player(monster.Monster):
     has_directions = 1
     direction = adv.DIRECTION_DOWN
 
-    spritesheet = adv.loadSpritesheet("player.png")
+    spritesheet_naked = adv.loadSpritesheet("dansken.png")
+    spritesheet_clothing = adv.loadSpritesheet("dansken_pakladd_sprites.png")
 
-    animation_stopped = [adv.createAnimation(spritesheet, 0, 1),
-                         adv.createAnimation(spritesheet, 5, 1),
-                         adv.createAnimation(spritesheet, 10, 1),
-                         adv.createAnimation(spritesheet, 15, 1)]
-    animation_moving = [adv.createAnimation(spritesheet, 0, 5),
-                        adv.createAnimation(spritesheet, 5, 5),
-                        adv.createAnimation(spritesheet, 10, 5),
-                        adv.createAnimation(spritesheet, 15, 5)]
+    animation_stopped = [adv.createAnimation(spritesheet_clothing, 0, 2),
+                         adv.createAnimation(spritesheet_clothing, 0, 2),
+                         adv.createAnimation(spritesheet_clothing, 0, 2),
+                         adv.createAnimation(spritesheet_clothing, 0, 2)]
+    animation_moving = [adv.createAnimation(spritesheet_clothing, 0, 2),
+                        adv.createAnimation(spritesheet_clothing, 0, 2),
+                        adv.createAnimation(spritesheet_clothing, 0, 2),
+                        adv.createAnimation(spritesheet_clothing, 0, 2)]
 
     def tick(self):
         pass
