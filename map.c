@@ -413,6 +413,20 @@ render_map(adv_map *m, player *p)
 	if (dir > -1)
 	animation_render_sprite(rs.attack_cursor_sprites, dir, p->xx - start_x, p->yy - start_y);
 
+	adv_animation_list *l;
+	l = rs.animation_list;
+	while (l) {
+		x = l->x * SPRITE_SIZE - start_x;
+		y = l->y * SPRITE_SIZE - start_y;
+		if (x >= 0 &&
+			x < screen_width &&
+			y >= 0 &&
+			y < screen_height) {
+			animation_render(l->id, x, y);
+		}
+		l = l->next;
+	}
+
 	/* Return 1 if we've actually done something */
 	return 1;
 }
@@ -448,15 +462,19 @@ map_get_tile_position_from_screen(int screen_x, int screen_y, int *tile_x, int *
 		start_y = p->yy - screen_height / 2;
 	}
 
-
 	if (start_x < 0) start_x = 0;
 	if (start_y < 0) start_y = 0;
 
-	*tile_x = (screen_x - start_x) / SPRITE_SIZE /
-		((float)rs.real_screen->w / rs.screen->w);
-	*tile_y = (screen_y - start_y) / SPRITE_SIZE /
-		((float)rs.real_screen->h / rs.screen->h);
-	
+   *tile_x = 
+	   p->tile_x +
+	   (screen_x*
+	   ((float)rs.screen->w / rs.real_screen->w) - (p->xx - start_x)) /
+		SPRITE_SIZE;
+	*tile_y = 
+		p->tile_y +
+		(screen_y*
+		((float)rs.screen->h / rs.real_screen->h) - (p->yy - start_y)) /
+		SPRITE_SIZE;
 	return 0;
 }
 

@@ -47,5 +47,7 @@ int monster_position_is_visible(adv_monster *m, int x, int y);
 
 extern adv_monster *main_player;
 
+int monster_attack(adv_monster *m, int x, int y);
+
 #endif /* end of include guard: PLAYER_H */
 

@@ -37,6 +37,15 @@ typedef struct t_adv_base_object {
 
 #define ADV_OBJECT_LIST \
 
+
+struct t_adv_animation_list;
+typedef struct t_adv_animation_list {
+	struct t_adv_animation_list *next;
+	int id;
+	int x;
+	int y;
+}adv_animation_list;
+
 typedef struct t_render_space {
 	SDL_Window *win;
 	SDL_Surface *real_screen;
@@ -44,6 +53,7 @@ typedef struct t_render_space {
 	SDL_Surface *map_surface;
 	int fog_tile;
 	int attack_cursor_sprites;
+	int attack_animation;
+	adv_animation_list *animation_list;
 }render_space;
-
 #endif /* end of include guard: COMMON_H */

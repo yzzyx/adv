@@ -1,5 +1,6 @@
 #include <Python.h>
 #include "animation.h"
+#include "sdl.h"
 #include "player.h"
 #include "common.h"
 #include "astar.h"
@@ -324,4 +325,77 @@ monster_position_is_visible(adv_monster *m, int map_x, int map_y)
 		}
 	}
 	return 1;
+}
+
+/*
+ * monster_attack(m, x, y)
+ *
+ * Attack in direction of (x,y)
+ * The actual outcome differs depending on weapons, etc.
+ */
+int
+monster_attack(adv_monster *m, int x, int y)
+{
+
+	int mx = 0, my = 0;
+	float angle = atan2f(x - m->tile_x,
+						 y - m->tile_y) * 180/M_PI;
+
+	/* Straight directions */
+	if (angle >   0 - 45.0/2 && angle <=   0 + 45.0/2) my = 1;
+	else if (angle >  90 - 45.0/2 && angle <=  90 + 45.0/2) mx = 1;
+	else if (angle > 180 - 45.0/2 && angle <= 180 + 45.0/2) my = -1;
+	else if (angle > -90 - 45.0/2 && angle <= -90 + 45.0/2) mx = -1;
+	/* Corner directions */
+	else if (angle >   45 - 45.0/2 && angle <=   45 + 45.0/2) { mx = 1; my = 1; } /* DOWN+RIGHT */
+	else if (angle >  135 - 45.0/2 && angle <=  135 + 45.0/2) { mx = 1; my = -1; } /* UP+RIGHT */
+	else if (angle > -135 - 45.0/2 && angle <= -135 + 45.0/2) { mx = -1; my = -1; } /* UP+LEFT */
+	else if (angle >  -45 - 45.0/2 && angle <=  -45 + 45.0/2) { mx = -1; my = 1; } /* DOWN+LEFT */
+
+
+	/* Check if any monster is standing there */
+	adv_monster *monster;
+	monster = global_GS.current_map->monsters;
+
+	animation_play(rs.attack_animation, m->tile_x + mx, m->tile_y + my);
+
+	for (; monster != NULL; monster = (adv_monster *)monster->next) {
+
+		if (monster->tile_x == m->tile_x + mx &&
+			monster->tile_y == m->tile_y + my) {
+
+
+			printf("Attacking monster @ %d,%d with hp: %d\n", monster->tile_x,
+				monster->tile_y, monster->hp);
+			monster->hp -= 20;
+			monster->is_dirty = 1;
+			py_update_monster_from_c(monster);
+
+			if (monster->hp <= 0) {
+				PyObject *tmp;
+				tmp = PyObject_CallMethod(monster->py_obj, "isDead", NULL);
+				if (tmp != NULL)
+					Py_DECREF(tmp);
+
+				if (monster->prev != NULL)
+					monster->prev->next = monster->next;
+				if (monster->next != NULL)
+					monster->next->prev = monster->prev;
+				if (global_GS.current_map->monsters == monster)
+					global_GS.current_map->monsters = (adv_monster*)monster->next;
+				
+				Py_DECREF(monster->py_obj);
+				free(monster);
+				break;
+			}
+
+			PyObject *tmp;
+			tmp = PyObject_CallMethod(monster->py_obj, "isHit", NULL);
+			if (tmp != NULL)
+				Py_DECREF(tmp);
+			break;
+		}
+	}
+
+	return 0;
 }

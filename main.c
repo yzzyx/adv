@@ -78,9 +78,11 @@ attack_event(SDL_Event *ev)
 {
 
 	int tx, ty;
+
 	map_get_tile_position_from_screen(ev->button.x, ev->button.y, &tx, &ty);
 	printf("button pressed @ %d,%d == tile %d,%d\n", ev->button.x, ev->button.y, tx, ty);
 
+	monster_attack(main_player, tx, ty);
 	return 0;
 }
 
@@ -98,6 +100,10 @@ int main(int argc, char *argv[])
 	setup_python(argc, argv);
 
 	rs.attack_cursor_sprites = animation_load_spritesheet("./img/attackcursor.png");
+
+	int attack_sprites = animation_load_spritesheet("./img/attackanimation.png");
+	animation_set_spritesheet_blendmode(attack_sprites, SDL_BLENDMODE_BLEND);
+	rs.attack_animation = animation_create(attack_sprites, 0, 6);
 
 	if ((m=get_map("level1")) == NULL) {
 		printf("No map!\n");
@@ -170,6 +176,27 @@ int main(int argc, char *argv[])
 
 				if (!p->in_movement)
 					p->draw_movement = 0;
+			}
+
+			adv_animation_list *prev_anim;
+			adv_animation_list *anim;
+
+			anim = rs.animation_list;
+			prev_anim = NULL;
+			while (anim) {
+				if (animation_next_clip(anim->id) == 1) {
+					/* Animation finished */
+					if (prev_anim == NULL)
+						rs.animation_list = anim->next;
+					else
+						prev_anim->next = anim->next;
+					adv_animation_list *t;
+					t = anim;
+					anim = anim->next;
+					free(t);
+					continue;
+				}
+				anim = anim->next;
 			}
 
 			map_update_monster_animations(global_GS.current_map);

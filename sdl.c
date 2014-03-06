@@ -5,7 +5,7 @@
 
 #define FRAMES_PER_SECOND 60
 
-render_space rs;
+render_space rs = { NULL, NULL, NULL, NULL, -1, -1, -1, NULL };
 
 SDL_Surface *surface_sdl(int w, int h)
 {
