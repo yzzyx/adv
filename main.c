@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 	player *p;
 	adv_map *m;
 	
-	if (setup_sdl(1024,768) == -1) {
+	if (setup_sdl(1280,960) == -1) {
 		printf("setup_sdl(): -1\n");
 		return -1;
 	}
