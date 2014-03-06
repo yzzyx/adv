@@ -22,4 +22,5 @@ int animation_render_full(int animation_id, int x, int y, SDL_Surface *surface);
 int animation_render_clipped(int animation_id, int x, int y, int w, int h, SDL_Surface *surface);
 int animation_get_n_frames(int animation_id);
 int animation_get_spritesheet_from_anim(int animation_id);
+int animation_play(int animation_id, int tx, int ty);
 #endif /* end of include guard: ANIMATION_H */
