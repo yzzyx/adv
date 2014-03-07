@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include "common.h"
 #include "player.h"
+#include "object.h"
 
 typedef struct t_adv_map adv_map;
 typedef struct t_adv_tile {
@@ -15,13 +16,6 @@ typedef struct t_adv_tile {
 	int walkable;
 	int visibility;
 }adv_tile;
-
-typedef struct t_adv_object {
-	ADV_OBJECT_HEADER
-	ADV_OBJECT_LIST
-
-	int animation_id;
-}adv_object;
 
 typedef struct t_adv_map {
 	ADV_OBJECT_HEADER

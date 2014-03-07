@@ -15,7 +15,10 @@ int py_update_object_timer(adv_base_object *obj);
 
 int py_update_monster(adv_monster *monster);
 int py_update_monster_from_c(adv_monster *monster);
-adv_monster *py_new_monster_from_object(PyObject *obj);
+adv_monster *py_new_monster_from_pyobj(PyObject *obj);
+
+int py_update_object(adv_object *obj);
+adv_object *py_new_object_from_pyobj(PyObject *obj);
 
 int setup_python(int argc, char *argv[]);
 adv_tile *py_get_tile(PyObject *py_obj);

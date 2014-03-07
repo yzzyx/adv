@@ -6,6 +6,7 @@ from tiles.grass import Grass
 from maps.generator import RandomGrassGenerator
 from tiles.rock import Rock
 from monsters.gnome import Gnome, GreenGoblin
+from objects.sword import SimpleSword
 
 class level1(map.Map):
     tiles = [
@@ -49,9 +50,13 @@ class level1(map.Map):
     width = 24
     height = 23
 
+    objects = None
+
     def generate(self):
         grassgen = RandomGrassGenerator()
         self.monsters = grassgen.generateLevel(self)
+        self.objects = []
+        self.objects.append(SimpleSword(4,3))
 
     def getTiles(self):
         pass

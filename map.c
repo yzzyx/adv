@@ -98,22 +98,25 @@ get_map(const char *map_name)
 		}
 	}
 
-	PyObject *monster_list;
-	PyObject *py_monster;
+	PyObject *list;
+	PyObject *py_obj;
 	adv_monster *monster;
-	monster_list = PyObject_GetAttrString(map_inst, "monsters");
-	if (monster_list == NULL) {
+	adv_object *object;
+
+	/* Get all monsters currently on the map */
+	list = PyObject_GetAttrString(map_inst, "monsters");
+	if (list == NULL) {
 		PyErr_Print();
 		free(m);
 		return NULL;
 	}
 
-	for (x = 0; x < PyList_Size(monster_list); x ++) {
-		py_monster = PyList_GetItem(monster_list, x);
-		if (py_monster == Py_None)
+	for (x = 0; x < PyList_Size(list); x ++) {
+		py_obj = PyList_GetItem(list, x);
+		if (py_obj == Py_None)
 			continue;
 		else
-			monster = py_new_monster_from_object(py_monster);
+			monster = py_new_monster_from_pyobj(py_obj);
 
 		monster->map = m;
 		if (m->monsters) {
@@ -127,6 +130,32 @@ get_map(const char *map_name)
 		m->monsters = monster;
 	}
 
+	/* Get all objects currently on the map */
+	list = PyObject_GetAttrString(map_inst, "objects");
+	if (list == NULL) {
+		PyErr_Print();
+		free(m);
+		return NULL;
+	}
+
+	for (x = 0; x < PyList_Size(list); x ++) {
+		py_obj = PyList_GetItem(list, x);
+		if (py_obj == Py_None)
+			continue;
+		else
+			object = py_new_object_from_pyobj(py_obj);
+
+		if (m->objects) {
+			m->objects->prev = (adv_base_object*)object;
+			object->next = (adv_base_object*)m->objects;
+			object->prev = NULL;
+		} else {
+			object->next = NULL;
+			object->prev = NULL;
+		}
+		m->objects = object;
+	}
+	printf("%d objects!\n", x);
 	return m;
 }
 
@@ -355,8 +384,24 @@ render_map(adv_map *m, player *p)
 #if USE_FOG
 	SDL_BlitSurface(m->fog_surface, &clip, rs.screen, &screen_rect);
 #endif
-	
+	/* Draw objects */
+	adv_object *obj;
 
+	obj = m->objects;
+	for (; obj != NULL; obj = (adv_object *)obj->next) {
+		x = obj->tile_x * SPRITE_SIZE;
+		y = obj->tile_y * SPRITE_SIZE;
+
+		if (x - start_x >= 0 &&
+			x - start_x < screen_width &&
+			y - start_y >= 0 &&
+			y - start_y < screen_height) {
+				animation_render(obj->animation,
+					x - start_x, y - start_y);
+		}
+	}
+
+	/* Draw player */
 	int dir = 0;
 	if (p->has_directions) dir = p->direction;
 	if (p->draw_movement) {
@@ -369,6 +414,7 @@ render_map(adv_map *m, player *p)
 		    p->yy - start_y);
 	}
 
+	/* Draw monsters */
 	adv_monster *monster;
 
 	monster = m->monsters;

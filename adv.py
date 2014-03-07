@@ -5,6 +5,15 @@ DIRECTION_LEFT = 1
 DIRECTION_UP = 2
 DIRECTION_RIGHT = 3
 
+"""
+Different object types are
+handled somewhat differently,
+e.g. a weapon can be wielded, armor worn
+"""
+OBJECT_STANDARD = 0
+OBJECT_WEAPON = 1
+OBJECT_ARMOR = 2
+
 loadSpritesheet = _adv.loadSpritesheet
 createAnimation = _adv.createAnimation
 getPlayer = _adv.getPlayer

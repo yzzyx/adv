@@ -5,9 +5,22 @@
 #include "map.h"
 #include "python.h"
 #include "astar.h"
+#include "object.h"
 
 PyObject *main_module;
 PyObject *main_dict;
+
+void
+py_CallMethodNoArgs(PyObject *obj, char *method)
+{
+	PyObject *tmp;
+
+	if (!PyObject_HasAttrString(obj,method))
+		return;
+	tmp = PyObject_CallMethod(obj, method, NULL);
+	if (tmp)
+		Py_DECREF(tmp);
+}
 
 /*
  * py_animLoadSpritesheet(): [animLoadSpritesheet(filename, useAlphaBlend = 1)]
@@ -310,7 +323,18 @@ py_update_monster(adv_monster *monster)
 */
 //	monster->target_tile_x = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_x"));
 //	monster->target_tile_y = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_y"));
-	monster->speed = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "speed"));
+	PyObject *tmp;
+
+	tmp = PyObject_CallMethod(monster->py_obj, "getMovementSpeed", NULL);
+	if (tmp) {
+		monster->speed = py_get_int_decref(tmp);
+	}
+
+	tmp = PyObject_CallMethod(monster->py_obj, "getAttackSpeed", NULL);
+	if (tmp) {
+		monster->attack_speed = py_get_int_decref(tmp);
+	}
+	
 	PyObject_SetAttrString(monster->py_obj, "is_dirty", Py_BuildValue("i", 0));
 	return 0;
 }
@@ -331,7 +355,7 @@ py_update_monster_from_c(adv_monster *monster)
 }
 
 adv_monster *
-py_new_monster_from_object(PyObject *obj)
+py_new_monster_from_pyobj(PyObject *obj)
 {
 	adv_monster *monster;
 
@@ -349,6 +373,33 @@ py_new_monster_from_object(PyObject *obj)
 	monster->yy = monster->tile_y * SPRITE_SIZE;
 
 	return monster;
+}
+
+int
+py_update_object(adv_object *obj)
+{
+	obj->tile_x = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "x"));
+	obj->tile_y = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "y"));
+	obj->type = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "type"));
+	obj->animation = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "animation"));
+
+	PyObject_SetAttrString(obj->py_obj, "is_dirty", Py_BuildValue("i", 0));
+	return 0;
+}
+
+adv_object *
+py_new_object_from_pyobj(PyObject *py_obj)
+{
+	adv_object *obj;
+
+	obj = malloc(sizeof *obj);
+	memset(obj, 0, sizeof *obj);
+	obj->py_obj = py_obj;
+	
+	py_update_base_object((adv_base_object*)obj);
+	py_update_object(obj);
+
+	return obj;
 }
 
 static PyMethodDef methods[] = {

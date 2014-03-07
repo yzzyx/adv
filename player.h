@@ -26,6 +26,7 @@ typedef struct t_adv_monster {
 	int hp;
 	int mp;
 	int speed;
+	int attack_speed;
 
 	int spritesheet;
 	int animation_stopped[4];
