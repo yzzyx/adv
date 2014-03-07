@@ -6,7 +6,7 @@
 #include "astar.h"
 #include "gamestate.h"
 
-player *main_player;
+adv_monster *main_player;
 
 #define FPS_MAX 60
 
@@ -88,7 +88,7 @@ attack_event(SDL_Event *ev)
 
 int main(int argc, char *argv[])
 {
-	player *p;
+	adv_monster *p;
 	adv_map *m;
 	
 	if (setup_sdl(1280,960) == -1) {
@@ -133,7 +133,6 @@ int main(int argc, char *argv[])
 	p->yy = p->tile_y * SPRITE_SIZE;
 	p->target_tile_x = p->tile_x;
 	p->target_tile_y = p->tile_y;
-	p->map = m;
 	printf("main: player animation: %d\n", p->animation_stopped[0]);
 
 	main_player = p;

@@ -10,32 +10,15 @@
 
 #define TICK_LENGTH 3
 
-/*
- * py_update_c_player()
- *
- * Copy information from python to C
- */
-int
-py_update_c_player(player *p)
-{
-
-	py_update_monster((adv_monster*)p);
-	return 0;
-}
-
-player *
+adv_monster *
 setup_player()
 {
-	player *p;
-
-	p = malloc(sizeof *p);
-	memset(p, 0, sizeof *p);
+	adv_monster *p;
 
 	PyObject *module = PyDict_GetItemString(main_dict, "player");
 	if (module == NULL) {
 		printf("PyDict_GetItemString():\n");
 		PyErr_Print();
-		free(p);
 		return NULL;
 	}
 	PyObject *obj_def = PyObject_GetAttrString(module, "Player");
@@ -52,8 +35,7 @@ setup_player()
 		return NULL;
 	}
 
-	p->py_obj = obj_inst;
-	py_update_c_player(p);
+	p = py_new_monster_from_pyobj(obj_inst);
 	return p;
 }
 
@@ -62,7 +44,7 @@ setup_player()
  * Check for collision
  */
 int
-player_map_is_walkable(player *p)
+player_map_is_walkable(adv_monster *p)
 {
 	int tx, ty;
 	int min_x, min_y, max_x, max_y;
@@ -72,12 +54,14 @@ player_map_is_walkable(player *p)
 
 	max_x = min_x + (((p->xx % SPRITE_SIZE) > 0) ? 1:0);
 	max_y = min_y + (((p->yy % SPRITE_SIZE) > 0) ? 1:0);
-	if (max_x >= p->map->width) max_x = p->map->width - 1;
-	if (max_y >= p->map->height) max_y = p->map->height - 1;
+	if (max_x >= global_GS.current_map->width)
+		max_x = global_GS.current_map->width - 1;
+	if (max_y >= global_GS.current_map->height)
+		max_y = global_GS.current_map->height - 1;
 
 	for (tx = min_x; tx <= max_x; tx ++) {
 		for (ty = min_y; ty <= max_y; ty ++) {
-			if (!p->map->tiles[tx+ty*p->map->width]->walkable)
+			if (!global_GS.current_map->tiles[tx+ty*global_GS.current_map->width]->walkable)
 				return 0;
 		}
 	}
@@ -151,7 +135,7 @@ int monster_move_direction_int(adv_monster *p, int direction)
  *
  * called each tick, updating the player's position
  */
-int monster_move(player *p)
+int monster_move(adv_monster *p)
 {
 	int dir;
 	int x2, y2;
@@ -159,8 +143,10 @@ int monster_move(player *p)
 	/* check for errors */
 	if (p->target_tile_x < 0) p->target_tile_x = 0;
 	if (p->target_tile_y < 0) p->target_tile_y = 0;
-	if (p->target_tile_x > p->map->width - 1) p->target_tile_x = p->map->width - 1;
-	if (p->target_tile_y > p->map->height - 1) p->target_tile_y = p->map->height - 1;
+	if (p->target_tile_x > global_GS.current_map->width - 1)
+		p->target_tile_x = global_GS.current_map->width - 1;
+	if (p->target_tile_y > global_GS.current_map->height - 1)
+		p->target_tile_y = global_GS.current_map->height - 1;
 
 	if (p->mod_x == 0 && p->mod_y == 0 &&
 	    p->target_tile_x == p->tile_x && p->target_tile_y == p->tile_y)
@@ -251,7 +237,7 @@ monster_goto_direction(adv_monster *p, int direction)
  * Returns 1 if it's possible, or 0 otherwise
  */
 int
-monster_goto_position(player *p, int x, int y)
+monster_goto_position(adv_monster *p, int x, int y)
 {
 	if (x < 0) x = 0;
 	if (y < 0) y = 0;

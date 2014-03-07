@@ -1,6 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 #include "common.h"
+#include "object.h"
 
 typedef struct t_adv_map adv_map;
 typedef struct t_adv_monster {
@@ -32,12 +33,10 @@ typedef struct t_adv_monster {
 	int animation_stopped[4];
 	int animation_moving[4];
 
-	adv_map *map;
+	adv_object *inventory;
 }adv_monster;
 
-typedef struct t_adv_monster player;
-
-player *setup_player();
+adv_monster *setup_player();
 int monster_move(adv_monster *p);
 
 int monster_goto_direction(adv_monster *p, int direction);

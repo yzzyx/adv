@@ -118,7 +118,6 @@ get_map(const char *map_name)
 		else
 			monster = py_new_monster_from_pyobj(py_obj);
 
-		monster->map = m;
 		if (m->monsters) {
 			m->monsters->prev = (adv_base_object*)monster;
 			monster->next = (adv_base_object*)m->monsters;
@@ -182,7 +181,7 @@ map_to_screen_y(adv_map *m, int y)
 
 #if USE_FOG
 static int
-map_pos_is_visible(adv_map *m, player *p, int map_x, int map_y)
+map_pos_is_visible(adv_map *m, adv_monster *p, int map_x, int map_y)
 {
 	int dx = 0, dy = 0;
 	int x,y;
@@ -245,7 +244,7 @@ map_pos_is_visible(adv_map *m, player *p, int map_x, int map_y)
 }
 
 static int
-map_pos_is_visible2(adv_map *m, player *p, int map_x, int map_y)
+map_pos_is_visible2(adv_map *m, adv_monster *p, int map_x, int map_y)
 {
 	int dx = 0, dy = 0;
 	int x,y;
@@ -297,7 +296,7 @@ map_pos_is_visible2(adv_map *m, player *p, int map_x, int map_y)
 
 
 int
-render_map(adv_map *m, player *p)
+render_map(adv_map *m, adv_monster *p)
 {
 	int x, y;
 
