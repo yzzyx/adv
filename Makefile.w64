@@ -21,8 +21,12 @@ dist: adv.exe
 	cp w64/SDL2/bin/*.dll dist
 	cp w64/python/bin/*.dll dist
 	cp load.py dist
+	cp adv.py dist
+	cp gamestate.py dist
 	cp *.png dist
 	cp -R maps monsters tiles dist
+	cp -R img dist
+
 	@-mkdir dist/python
 	-cp python/stdlib.zip dist/python
 	-cp -R python/Lib dist/python
