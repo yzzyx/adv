@@ -8,8 +8,8 @@ class Player(monster.Monster):
     y = 8
     target_x = x
     target_y = y
-    speed = 4
-    timer = 4
+    speed = 5
+    timer = -1
     has_directions = 1
     direction = adv.DIRECTION_DOWN
 
@@ -27,3 +27,9 @@ class Player(monster.Monster):
 
     def tick(self):
         pass
+
+    def isHit(self):
+        print "Player HP: %d" % self.hp
+
+    def isDead(self):
+        print "AAAARGHHH!!! IM DEAD! RIP PLAYER!"

@@ -375,12 +375,36 @@ monster_attack(adv_monster *m, int x, int y)
 		my = -1;
 	}
 
+	animation_play(rs.attack_animations[dir], m->tile_x + mx, m->tile_y + my);
+
+	/* Check if player is standing there */
+	if (main_player->tile_x == m->tile_x + mx &&
+		main_player->tile_y == m->tile_y + my) {
+
+		printf("Attacking monster @ %d,%d with hp: %d\n", main_player->tile_x,
+			main_player->tile_y, main_player->hp);
+		main_player->hp -= 20;
+		main_player->is_dirty = 1;
+		py_update_monster_from_c(main_player);
+
+		if (main_player->hp <= 0) {
+			PyObject *tmp;
+			tmp = PyObject_CallMethod(main_player->py_obj, "isDead", NULL);
+			if (tmp != NULL)
+				Py_DECREF(tmp);
+			return 0;
+		}
+
+		PyObject *tmp;
+		tmp = PyObject_CallMethod(main_player->py_obj, "isHit", NULL);
+		if (tmp != NULL)
+			Py_DECREF(tmp);
+	}
 
 	/* Check if any monster is standing there */
 	adv_monster *monster;
 	monster = global_GS.current_map->monsters;
 
-	animation_play(rs.attack_animations[dir], m->tile_x + mx, m->tile_y + my);
 
 	for (; monster != NULL; monster = (adv_monster *)monster->next) {
 

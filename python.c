@@ -14,7 +14,8 @@ PyObject *main_dict;
  *
  * Load a spritesheet, with alpha if specified
  */
-PyObject *py_animLoadSpritesheet(PyObject *self, PyObject *args)
+PyObject *
+py_animLoadSpritesheet(PyObject *self, PyObject *args)
 {
 	const char *filename;
 	int ss_id = 0;
@@ -39,7 +40,8 @@ PyObject *py_animLoadSpritesheet(PyObject *self, PyObject *args)
  *
  * Create an animation from a given spritesheet
  */
-PyObject *py_animCreate(PyObject *self, PyObject *args)
+PyObject *
+py_animCreate(PyObject *self, PyObject *args)
 {
 	int ss_id;
 	int start;
@@ -63,7 +65,8 @@ PyObject *py_animCreate(PyObject *self, PyObject *args)
  *
  * Returns the player object
  */
-PyObject *py_getPlayer(PyObject *self, PyObject *args)
+PyObject *
+py_getPlayer(PyObject *self, PyObject *args)
 {
 
 	Py_INCREF(main_player->py_obj);
@@ -75,7 +78,8 @@ PyObject *py_getPlayer(PyObject *self, PyObject *args)
  *
  * Returns distance between two points
  */
-PyObject *py_getDistance(PyObject *self, PyObject *args)
+PyObject *
+py_getDistance(PyObject *self, PyObject *args)
 {
 	int x1, y1, x2, y2;
 
@@ -100,7 +104,8 @@ PyObject *py_getDistance(PyObject *self, PyObject *args)
  * to (x1,y1). Return value is a string, which can contain 4 different
  * characters - N,E,S,W
  */
-PyObject *py_getPath(PyObject *self, PyObject *args)
+PyObject *
+py_getPath(PyObject *self, PyObject *args)
 {
 	PyObject *monster;
 	int x1, y1;
@@ -130,7 +135,8 @@ PyObject *py_getPath(PyObject *self, PyObject *args)
  * Returns true if position (x,y) is visible for monster, otherwise false
  *
  */
-PyObject *py_isVisible(PyObject *self, PyObject *args)
+PyObject *
+py_isVisible(PyObject *self, PyObject *args)
 {
 	PyObject *monster;
 	int x1, y1;
@@ -156,7 +162,8 @@ PyObject *py_isVisible(PyObject *self, PyObject *args)
  * Monster will start walking towards (x,y)
  *
  */
-PyObject *py_monster_gotoPosition(PyObject *self, PyObject *args)
+PyObject *
+py_monster_gotoPosition(PyObject *self, PyObject *args)
 {
 	PyObject *monster;
 	int x1, y1;
@@ -180,7 +187,8 @@ PyObject *py_monster_gotoPosition(PyObject *self, PyObject *args)
  * Monster will start walking in direction dir
  *
  */
-PyObject *py_monster_gotoDirection(PyObject *self, PyObject *args)
+PyObject *
+py_monster_gotoDirection(PyObject *self, PyObject *args)
 {
 	PyObject *monster;
 	int dir;
@@ -197,6 +205,29 @@ PyObject *py_monster_gotoDirection(PyObject *self, PyObject *args)
 	m = monster_get_from_pyobj(monster);
 	ret = monster_goto_direction(m, dir);
 	return PyBool_FromLong(ret);
+}
+
+/*
+ * py_monster_attack(): [monster_attack(monster, x, y)]
+ *
+ * Monster should attack tile x,y
+ */
+PyObject *
+py_monster_attack(PyObject *self, PyObject *args)
+{
+	PyObject *monster;
+	int x, y;
+
+	if (!PyArg_ParseTuple(args, "Oii", &monster, &x, &y)) {
+		printf("py_monster_attack():\n");
+		PyErr_Print();
+		return NULL;
+	}
+
+	adv_monster *m;
+	m = monster_get_from_pyobj(monster);
+	monster_attack(m, x, y);
+	return PyBool_FromLong(1);
 }
 
 int
@@ -329,6 +360,7 @@ static PyMethodDef methods[] = {
     {"isVisible",		py_isVisible,		METH_VARARGS, "isVisible(monster, x1, y1): Check if monster can see position x1,y1" },
     {"monster_gotoPosition",	py_monster_gotoPosition,METH_VARARGS, "monster_gotoPosition(monster, x1, y1): monster should start walking towards (x,y) (if possible)" },
     {"monster_gotoDirection",	py_monster_gotoDirection,METH_VARARGS, "monster_gotoDirection(monster, direction): monster should start walking in direction (if possible)" },
+	{"monster_attack",		py_monster_attack, METH_VARARGS, "monster_attack(monster, x, y): attack tile @ x,y" },
 //    {"monster_gotoPosition", monster_gotoPosition, METH_VARARGS, "monster_gotoPosition" },
     {NULL, NULL, 0, NULL}
 };
@@ -429,7 +461,8 @@ py_update_object_timer(adv_base_object *obj)
 }
 
 
-int setup_python(int argc, char *argv[])
+int
+setup_python(int argc, char *argv[])
 {
 	PyObject *adv_module;
 

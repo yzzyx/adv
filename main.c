@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
 	SDL_BlitScaled(rs.screen, &screen_clip, rs.real_screen, &real_screen_clip);
 	SDL_UpdateWindowSurface(rs.win);
 
-	while(!quit) {
+	while(!quit && main_player->hp > 0) {
 
 		if (fps_limit())
 			fps_update();

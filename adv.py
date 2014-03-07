@@ -13,3 +13,4 @@ getPath = _adv.getPath
 isVisible = _adv.isVisible
 monster_gotoPosition = _adv.monster_gotoPosition
 monster_gotoDirection = _adv.monster_gotoDirection
+monster_attack = _adv.monster_attack
