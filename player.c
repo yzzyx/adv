@@ -337,27 +337,50 @@ int
 monster_attack(adv_monster *m, int x, int y)
 {
 
+	int dir;
 	int mx = 0, my = 0;
 	float angle = atan2f(x - m->tile_x,
 						 y - m->tile_y) * 180/M_PI;
 
 	/* Straight directions */
-	if (angle >   0 - 45.0/2 && angle <=   0 + 45.0/2) my = 1;
-	else if (angle >  90 - 45.0/2 && angle <=  90 + 45.0/2) mx = 1;
-	else if (angle > 180 - 45.0/2 && angle <= 180 + 45.0/2) my = -1;
-	else if (angle > -90 - 45.0/2 && angle <= -90 + 45.0/2) mx = -1;
+	if (angle >   0 - 45.0/2 && angle <=   0 + 45.0/2) {
+		dir = DIRECTION_DOWN;
+		my = 1;
+	} else if (angle >  90 - 45.0/2 && angle <=  90 + 45.0/2) {
+		dir = DIRECTION_RIGHT;
+		mx = 1;
+	} else if (angle > 180 - 45.0/2 && angle <= 180 + 45.0/2) {
+		dir = DIRECTION_UP;
+		my = -1;
+	} else if (angle > -90 - 45.0/2 && angle <= -90 + 45.0/2) {
+		dir = DIRECTION_LEFT;
+		mx = -1;
+
 	/* Corner directions */
-	else if (angle >   45 - 45.0/2 && angle <=   45 + 45.0/2) { mx = 1; my = 1; } /* DOWN+RIGHT */
-	else if (angle >  135 - 45.0/2 && angle <=  135 + 45.0/2) { mx = 1; my = -1; } /* UP+RIGHT */
-	else if (angle > -135 - 45.0/2 && angle <= -135 + 45.0/2) { mx = -1; my = -1; } /* UP+LEFT */
-	else if (angle >  -45 - 45.0/2 && angle <=  -45 + 45.0/2) { mx = -1; my = 1; } /* DOWN+LEFT */
+	} else if (angle >   45 - 45.0/2 && angle <=   45 + 45.0/2) { /* DOWN+RIGHT */
+		dir = 4;
+		mx = 1;
+		my = 1;
+	} else if (angle >  -45 - 45.0/2 && angle <=  -45 + 45.0/2) { /* DOWN+LEFT */
+		dir = 5;
+		mx = -1;
+		my = 1;
+	} else if (angle >  135 - 45.0/2 && angle <=  135 + 45.0/2) { /* UP+RIGHT */
+		dir = 6;
+		mx = 1;
+		my = -1;
+	} else if (angle > -135 - 45.0/2 && angle <= -135 + 45.0/2) { /* UP+LEFT */
+		dir = 7;
+		mx = -1;
+		my = -1;
+	}
 
 
 	/* Check if any monster is standing there */
 	adv_monster *monster;
 	monster = global_GS.current_map->monsters;
 
-	animation_play(rs.attack_animation, m->tile_x + mx, m->tile_y + my);
+	animation_play(rs.attack_animations[dir], m->tile_x + mx, m->tile_y + my);
 
 	for (; monster != NULL; monster = (adv_monster *)monster->next) {
 

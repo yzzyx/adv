@@ -103,7 +103,14 @@ int main(int argc, char *argv[])
 
 	int attack_sprites = animation_load_spritesheet("./img/attackanimation.png");
 	animation_set_spritesheet_blendmode(attack_sprites, SDL_BLENDMODE_BLEND);
-	rs.attack_animation = animation_create(attack_sprites, 0, 6);
+	rs.attack_animations[DIRECTION_DOWN]  = animation_create(attack_sprites, 0, 6);
+	rs.attack_animations[DIRECTION_RIGHT] = animation_create(attack_sprites, 6, 6);
+	rs.attack_animations[DIRECTION_UP]    = animation_create(attack_sprites, 12, 6);
+	rs.attack_animations[DIRECTION_LEFT]  = animation_create(attack_sprites, 18, 6);
+	rs.attack_animations[4] = animation_create(attack_sprites, 24, 6);
+	rs.attack_animations[5] = animation_create(attack_sprites, 30, 6);
+	rs.attack_animations[6] = animation_create(attack_sprites, 36, 6);
+	rs.attack_animations[7] = animation_create(attack_sprites, 42, 6);
 
 	if ((m=get_map("level1")) == NULL) {
 		printf("No map!\n");

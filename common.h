@@ -53,7 +53,7 @@ typedef struct t_render_space {
 	SDL_Surface *map_surface;
 	int fog_tile;
 	int attack_cursor_sprites;
-	int attack_animation;
+	int attack_animations[8];
 	adv_animation_list *animation_list;
 }render_space;
 #endif /* end of include guard: COMMON_H */

@@ -406,9 +406,9 @@ render_map(adv_map *m, player *p)
 
 	/* Corner directions */
 	if (angle >   45 - 45.0/2 && angle <=   45 + 45.0/2) dir = 4; /* DOWN+RIGHT */
+	if (angle >  -45 - 45.0/2 && angle <=  -45 + 45.0/2) dir = 5; /* DOWN+LEFT */
 	if (angle >  135 - 45.0/2 && angle <=  135 + 45.0/2) dir = 7; /* UP+RIGHT */
 	if (angle > -135 - 45.0/2 && angle <= -135 + 45.0/2) dir = 6; /* UP+LEFT */
-	if (angle >  -45 - 45.0/2 && angle <=  -45 + 45.0/2) dir = 5; /* DOWN+LEFT */
 
 	if (dir > -1)
 	animation_render_sprite(rs.attack_cursor_sprites, dir, p->xx - start_x, p->yy - start_y);
