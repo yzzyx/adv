@@ -137,7 +137,7 @@ map_to_screen_x(adv_map *m, int x)
 	int sx;
 
 	sx = x - m->render_start_x;
-	sx *= FRAME_WIDTH;
+	sx *= SPRITE_SIZE;
 	return sx;
 }
 
@@ -147,7 +147,7 @@ map_to_screen_y(adv_map *m, int y)
 	int sy;
 
 	sy = y - m->render_start_y;
-	sy *= FRAME_HEIGHT;
+	sy *= SPRITE_SIZE;
 	return sy;
 }
 
@@ -201,8 +201,8 @@ map_pos_is_visible(adv_map *m, player *p, int map_x, int map_y)
 	if (p->tile_y > map_y) dy = 1;
 	else if (p->tile_y < map_y) dy = -1;
 
-	x = map_x * FRAME_WIDTH;
-	y = map_y * FRAME_HEIGHT;
+	x = map_x * SPRITE_SIZE;
+	y = map_y * SPRITE_SIZE;
 
 	while (x != p->tile_x  || y != p->tile_y) {
 		if (x != map_x && y != map_y &&
@@ -237,11 +237,11 @@ map_pos_is_visible2(adv_map *m, player *p, int map_x, int map_y)
 
 	for(;;) {
 		int tx, ty;
-		tx = x / FRAME_WIDTH;
-		ty = y / FRAME_HEIGHT;
+		tx = x / SPRITE_SIZE;
+		ty = y / SPRITE_SIZE;
 		if (m->tiles[tx+ty*m->width]->visibility == 0) {
-			if (!(tx == map_x / FRAME_WIDTH && 
-				ty == map_y / FRAME_HEIGHT))
+			if (!(tx == map_x / SPRITE_SIZE && 
+				ty == map_y / SPRITE_SIZE))
 				return 0;
 		}
 
@@ -273,8 +273,8 @@ render_map(adv_map *m, player *p)
 	int x, y;
 
 	if (m->map_surface == NULL) {
-		m->map_surface = surface_sdl(m->width * FRAME_WIDTH,
-		    m->height * FRAME_HEIGHT);
+		m->map_surface = surface_sdl(m->width * SPRITE_SIZE,
+		    m->height * SPRITE_SIZE);
 		SDL_SetSurfaceBlendMode(m->map_surface, SDL_BLENDMODE_NONE);
 
 		for(x = 0; x < m->width; x ++) {
@@ -291,8 +291,8 @@ render_map(adv_map *m, player *p)
 
 #if USE_FOG
 	if (m->fog_surface == NULL) {
-		m->fog_surface = surface_sdl(m->width * FRAME_WIDTH,
-		    m->height * FRAME_HEIGHT);
+		m->fog_surface = surface_sdl(m->width * SPRITE_SIZE,
+		    m->height * SPRITE_SIZE);
 //		SDL_SetColorKey(m->fog_surface, SDL_TRUE, 0);
 		printf("[fog] format: %d\n",  m->fog_surface->format->format);
 		printf("[fog] BPP: %d\n",  m->fog_surface->format->BitsPerPixel);

@@ -129,8 +129,8 @@ int main(int argc, char *argv[])
 
 	global_GS.current_map = m;
 
-	p->xx = p->tile_x * FRAME_WIDTH;
-	p->yy = p->tile_y * FRAME_HEIGHT;
+	p->xx = p->tile_x * SPRITE_SIZE;
+	p->yy = p->tile_y * SPRITE_SIZE;
 	p->target_tile_x = p->tile_x;
 	p->target_tile_y = p->tile_y;
 	p->map = m;
@@ -185,6 +185,12 @@ int main(int argc, char *argv[])
 					p->draw_movement = 0;
 			}
 
+
+			/* FIXME! - these animations should have their own
+			 *  frameset, so that the same base-animation
+			 *  can be played multiple times simultaneously,
+			 *  and they should also have their own timers
+			 */
 			adv_animation_list *prev_anim;
 			adv_animation_list *anim;
 

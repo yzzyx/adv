@@ -67,11 +67,11 @@ player_map_is_walkable(player *p)
 	int tx, ty;
 	int min_x, min_y, max_x, max_y;
 
-	min_x = p->xx / FRAME_WIDTH;
-	min_y = p->yy / FRAME_WIDTH;
+	min_x = p->xx / SPRITE_SIZE;
+	min_y = p->yy / SPRITE_SIZE;
 
-	max_x = min_x + (((p->xx % FRAME_WIDTH) > 0) ? 1:0);
-	max_y = min_y + (((p->yy % FRAME_WIDTH) > 0) ? 1:0);
+	max_x = min_x + (((p->xx % SPRITE_SIZE) > 0) ? 1:0);
+	max_y = min_y + (((p->yy % SPRITE_SIZE) > 0) ? 1:0);
 	if (max_x >= p->map->width) max_x = p->map->width - 1;
 	if (max_y >= p->map->height) max_y = p->map->height - 1;
 

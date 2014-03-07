@@ -2,9 +2,6 @@
 #define ANIMATION_H
 #include "common.h"
 
-#define FRAME_WIDTH 32
-#define FRAME_HEIGHT 32
-
 #define SPRITE_SIZE 32
 
 int animation_init();

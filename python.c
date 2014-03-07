@@ -303,10 +303,10 @@ py_update_monster(adv_monster *monster)
 	monster->tile_y = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "y"));
 
 /*
-	if (monster->xx % FRAME_WIDTH != monster->tile_x)
-		monster->xx = monster->tile_x * FRAME_WIDTH;
-	if (monster->yy % FRAME_WIDTH != monster->tile_x)
-		monster->yy = monster->tile_y * FRAME_WIDTH;
+	if (monster->xx % SPRITE_SIZE != monster->tile_x)
+		monster->xx = monster->tile_x * SPRITE_SIZE;
+	if (monster->yy % SPRITE_SIZE != monster->tile_x)
+		monster->yy = monster->tile_y * SPRITE_SIZE;
 */
 //	monster->target_tile_x = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_x"));
 //	monster->target_tile_y = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_y"));
