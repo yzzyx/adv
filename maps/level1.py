@@ -52,10 +52,6 @@ class level1(map.Map):
     def generate(self):
         grassgen = RandomGrassGenerator()
         self.monsters = grassgen.generateLevel(self)
-        self.monsters = []
-        self.monsters.append(Gnome(10, 10))
-        self.monsters.append(GreenGoblin(11, 11))
-        self.monsters.append(CrazyLumberjack(9, 9))
 
     def getTiles(self):
         pass

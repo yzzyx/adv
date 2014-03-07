@@ -1,5 +1,5 @@
 import random
-from monsters.gnome import GreenGoblin
+from monsters.gnome import GreenGoblin, GreenGoblinKing, Gnome
 from monsters.woodsmen import CrazyLumberjack
 from tiles import grass
 
@@ -50,6 +50,20 @@ class RandomGrassGenerator(MapGenerator):
                         wr.addChance(m.tiles[row_n][col_n - 1].__class__, 7)
                     m.tiles[row_n][col_n] = wr.choice()()
 
-                    if random.random() < 0.01:
-                        monsters.append([GreenGoblin, CrazyLumberjack][random.randint(0, 1)](col_n, row_n))
+        for _ in range(0, m.width * m.height // 75):
+            wr = WeightedRandom(
+                {CrazyLumberjack: 5,
+                 GreenGoblin: 10,
+                 GreenGoblinKing: 2,
+                 Gnome: 3}
+            )
+
+            while True:
+                x, y = random.randint(0, m.width - 1), random.randint(0, m.height - 1)
+                for monster in monsters:
+                    if monster.x == x and monster.y == y:
+                        continue
+                monsters.append(wr.choice()(x, y))
+                break
+
         return monsters
