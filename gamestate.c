@@ -27,15 +27,18 @@ int gamestate_init()
 
 	module = PyDict_GetItemString(main_dict, "gamestate");
 	if (module == NULL) {
+		printf("gamestate_init:GetItemString():");
 		PyErr_Print();
 		return -1;
 	}
 	if ((gs_def = PyObject_GetAttrString(module, "Gamestate")) == NULL) {
+		printf("gamestate_init:GetAttrString():");
 		PyErr_Print();
 		return -1;
 	}
 
 	if ((gs = PyObject_CallObject(gs_def, NULL)) == NULL) {
+		printf("gamestate_init:CallObject():");
 		PyErr_Print();
 		return -1;
 	}
