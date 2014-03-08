@@ -249,6 +249,46 @@ pyobj_is_dirty(PyObject *obj)
 	return py_get_int_decref(PyObject_GetAttrString(obj, "is_dirty"));
 }
 
+adv_base_object *
+py_update_list(adv_base_object *c_list, PyObject *py_obj, const char *python_attribute)
+{
+	adv_base_object *obj;
+
+	PyObject *list;
+	list = PyObject_GetAttrString(py_obj, python_attribute);
+	if (list == NULL) {
+		printf("py_update_list:GetAttrString():");
+		PyErr_Print();
+		object_list_free(c_list);
+		return NULL;
+	}
+
+	if (list == Py_None)
+		return NULL;
+
+	int x;
+	for (x = 0; x < PyList_Size(list); x ++) {
+		py_obj = PyList_GetItem(list, x);
+		if (py_obj == Py_None)
+			continue;
+
+		/* Check if this object is already in our list */
+		obj = object_list_find_pyobj(c_list, py_obj);
+		if (obj == NULL) {
+			/* Add object */
+			obj = (adv_base_object*)py_new_object_from_pyobj(py_obj);
+			if (c_list != NULL) {
+				obj->next = c_list;
+				c_list->prev = obj;
+			}
+		} else if (pyobj_is_dirty(py_obj)) {
+			printf("FIXME - update object\n");
+		}
+	}
+
+	return obj;
+}
+
 int 
 py_update_base_object(adv_base_object *obj)
 {
@@ -334,7 +374,11 @@ py_update_monster(adv_monster *monster)
 	if (tmp) {
 		monster->attack_speed = py_get_int_decref(tmp);
 	}
-	
+
+	/* Update inventory */
+	monster->inventory = (adv_object*)py_update_list(
+		(adv_base_object*)monster->inventory, monster->py_obj, "inventory");
+
 	PyObject_SetAttrString(monster->py_obj, "is_dirty", Py_BuildValue("i", 0));
 	return 0;
 }
