@@ -35,6 +35,18 @@ class Monster(object):
     has_directions = 1        # Monsters usually have 4 directions
     direction = adv.DIRECTION_DOWN
 
+    int_x = 0
+    int_y = 0
+    int_mod_x = 0
+    int_mod_y = 0
+    int_speed = 5
+    int_target_tile_x = 0
+    int_target_tile_y = 0
+    int_attack_target_x = 0
+    int_attack_target_y = 0
+    int_in_movement = 0
+    int_draw_movement = 0
+
     inventory = None
     spritesheet = None
     animation = None
@@ -46,6 +58,12 @@ class Monster(object):
             self.x = x
         if y != -1:
             self.y = y
+        self.int_x =  x * 32
+        self.int_y =  y * 32
+        self.int_target_tile_x = x
+        self.int_target_tile_y = y
+        self.int_attack_target_x = x
+        self.int_attack_target_y = y
 #        print "Created monster @ %d, %d" % (x,y)
 
     def tick(self):

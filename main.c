@@ -6,7 +6,7 @@
 #include "astar.h"
 #include "gamestate.h"
 
-adv_monster *main_player;
+PyObject *main_player;
 
 #define FPS_MAX 60
 
@@ -68,8 +68,8 @@ mouse_move_event(SDL_Event *ev)
 	int tx, ty;
 	map_get_tile_position_from_screen(ev->motion.x, ev->motion.y, &tx, &ty);
 
-	main_player->attack_target_x = tx;
-	main_player->attack_target_y = ty;
+	py_setattr_int(main_player, ATTR_INT_ATTACK_TARGET_X, tx);
+	py_setattr_int(main_player, ATTR_INT_ATTACK_TARGET_Y, ty);
 	return 0;
 }
 
@@ -88,7 +88,7 @@ attack_event(SDL_Event *ev)
 
 int main(int argc, char *argv[])
 {
-	adv_monster *p;
+	PyObject *p;
 	adv_map *m;
 	
 	if (setup_sdl(1280,960) == -1) {
@@ -129,12 +129,6 @@ int main(int argc, char *argv[])
 
 	global_GS.current_map = m;
 
-	p->xx = p->tile_x * SPRITE_SIZE;
-	p->yy = p->tile_y * SPRITE_SIZE;
-	p->target_tile_x = p->tile_x;
-	p->target_tile_y = p->tile_y;
-	printf("main: player animation: %d\n", p->animation_stopped[0]);
-
 	main_player = p;
 
 	int quit = 0;
@@ -142,7 +136,7 @@ int main(int argc, char *argv[])
 	SDL_Rect screen_clip;
 	SDL_Rect real_screen_clip;
 
-	render_map(m, p);
+	render_map(m);
 
 	screen_clip.x = 0;
 	screen_clip.y = 0;
@@ -157,31 +151,29 @@ int main(int argc, char *argv[])
 	SDL_BlitScaled(rs.screen, &screen_clip, rs.real_screen, &real_screen_clip);
 	SDL_UpdateWindowSurface(rs.win);
 
-	while(!quit && main_player->hp > 0) {
+	while(!quit) {
 
 		if (fps_limit())
 			fps_update();
 
 		gamestate_update();
-		if (p->is_dirty) py_update_monster_from_c(p);
 		update_map_monsters(m);
-		if (render_map(m, p)) {
+		if (render_map(m)) {
 			SDL_BlitScaled(rs.screen, &screen_clip, rs.real_screen, &real_screen_clip);
 			SDL_UpdateWindowSurface(rs.win);
 		}
 
-//		render_map_monsters(m);
-//		render_map_objects(m);
-
 		if (fps_data.frame_count % (10) == 1) {
-			if (p->draw_movement) {
+			if (py_getattr_int(p, ATTR_DRAW_MOVEMENT)) {
 				int dir;
-				if (p->has_directions) dir = p->direction;
+				if (py_getattr_int(p, ATTR_HAS_DIRECTIONS))
+					dir = py_getattr_int(p, ATTR_DIRECTION);
 				else dir = 0;
-				animation_next_clip(p->animation_moving[dir]);
 
-				if (!p->in_movement)
-					p->draw_movement = 0;
+				animation_next_clip(py_getattr_list_int(p, ATTR_ANIMATION_MOVING, dir));
+
+				if (!py_getattr_int(p, ATTR_IN_MOVEMENT))
+					py_setattr_int(p, ATTR_DRAW_MOVEMENT, 0);
 			}
 
 
@@ -215,7 +207,7 @@ int main(int argc, char *argv[])
 		}
 
 		if (fps_data.frame_count % (FPS_MAX / 3) == 1) {
-			py_update_object_timer((adv_base_object*)p);
+			py_update_object_timer(p);
 			call_tick_map(m);
 			call_tick_map_monsters(m);
 			call_tick_map_objects(m);
@@ -238,21 +230,25 @@ int main(int argc, char *argv[])
 
 
 		const uint8_t *keystate = SDL_GetKeyboardState(NULL);
-		if ((keystate[SDL_SCANCODE_UP] || keystate[SDL_SCANCODE_W]) && p->in_movement == 0)
+		if ((keystate[SDL_SCANCODE_UP] || keystate[SDL_SCANCODE_W]) && 
+			py_getattr_int(p, ATTR_IN_MOVEMENT) == 0)
 			monster_goto_direction(p, DIRECTION_UP);
 
-		if ((keystate[SDL_SCANCODE_DOWN] || keystate[SDL_SCANCODE_S]) && p->in_movement == 0)
+		if ((keystate[SDL_SCANCODE_DOWN] || keystate[SDL_SCANCODE_S]) &&
+			py_getattr_int(p, ATTR_IN_MOVEMENT) == 0)
 			monster_goto_direction(p, DIRECTION_DOWN);
 
-		if ((keystate[SDL_SCANCODE_LEFT] || keystate[SDL_SCANCODE_A]) && p->in_movement == 0)
+		if ((keystate[SDL_SCANCODE_LEFT] || keystate[SDL_SCANCODE_A]) &&
+			py_getattr_int(p, ATTR_IN_MOVEMENT) == 0)
 			monster_goto_direction(p, DIRECTION_LEFT);
 
-		if ((keystate[SDL_SCANCODE_RIGHT] || keystate[SDL_SCANCODE_D]) && p->in_movement == 0)
+		if ((keystate[SDL_SCANCODE_RIGHT] || keystate[SDL_SCANCODE_D]) &&
+			py_getattr_int(p, ATTR_IN_MOVEMENT) == 0)
 			monster_goto_direction(p, DIRECTION_RIGHT);
 
 		if (keystate[SDL_SCANCODE_Q]) quit++;
 		if (keystate[SDL_SCANCODE_M]) {
-			monster_goto_position(m->monsters, 5, 5);
+			monster_goto_position(main_player, 5, 5);
 		}
 		
 		monster_move(p);

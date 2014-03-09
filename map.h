@@ -26,8 +26,8 @@ typedef struct t_adv_map {
 	SDL_Surface *map_surface;
 	SDL_Surface *fog_surface;
 	adv_tile **tiles;
-	adv_monster *monsters;
-	adv_object *objects;
+	PyObject *monster_list;
+	PyObject *object_list;
 
 	uint8_t *fog_map;
 	int render_start_x;
@@ -35,7 +35,7 @@ typedef struct t_adv_map {
 }adv_map;
 
 adv_map *get_map(const char *map_name);
-int render_map(adv_map *m, adv_monster *p);
+int render_map(adv_map *m);
 int map_get_tile_position_from_screen(int screen_x, int screen_y, int *tile_x, int *tile_y);
 
 int update_map_monsters(adv_map *m);
@@ -44,7 +44,7 @@ int call_tick_map_monsters(adv_map *m);
 int call_tick_map_objects(adv_map *m);
 
 int map_tile_is_walkable(adv_map *m, int x, int y);
-int map_is_walkable(adv_monster *m, int x, int y);
+int map_is_walkable(PyObject *m, int x, int y);
 int map_update_monster_animations(adv_map *map);
 
 #endif /* end of include guard: MAP_H */

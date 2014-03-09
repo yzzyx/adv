@@ -358,7 +358,7 @@ pathfinder_shutdown()
 }
 
 node_t *
-find_jump_node(adv_monster *m, int dir,
+find_jump_node(PyObject *m, int dir,
 		node_t *node, node_t *end_node)
 {
 	int steps;
@@ -691,7 +691,7 @@ reconstruct_path(node_t *node)
 }
 
 int
-pathfinder(adv_monster *m, int x1, int y1, int *x2_ptr, int *y2_ptr)
+pathfinder(PyObject *m, int x1, int y1, int *x2_ptr, int *y2_ptr)
 {
 	node_t *start_node, *end_node;
 	node_t *node;

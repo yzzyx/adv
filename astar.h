@@ -5,6 +5,6 @@
 void pathfinder_setup(int width, int height);
 void pathfinder_shutdown();
 
-int pathfinder(adv_monster *map, int x1, int y1, int *x2, int *y2);
+int pathfinder(PyObject *monster, int x1, int y1, int *x2, int *y2);
 
 #endif
