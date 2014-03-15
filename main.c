@@ -66,7 +66,7 @@ int
 mouse_move_event(SDL_Event *ev)
 {
 	int tx, ty;
-	map_get_tile_position_from_screen(ev->motion.x, ev->motion.y, &tx, &ty);
+	map_get_position_from_screen(ev->motion.x, ev->motion.y, &tx, &ty);
 
 	py_setattr_int(main_player, ATTR_INT_ATTACK_TARGET_X, tx);
 	py_setattr_int(main_player, ATTR_INT_ATTACK_TARGET_Y, ty);
@@ -79,10 +79,11 @@ attack_event(SDL_Event *ev)
 
 	int tx, ty;
 
-	map_get_tile_position_from_screen(ev->button.x, ev->button.y, &tx, &ty);
+	map_get_position_from_screen(ev->button.x, ev->button.y, &tx, &ty);
 	printf("button pressed @ %d,%d == tile %d,%d\n", ev->button.x, ev->button.y, tx, ty);
 
-	monster_attack(main_player, tx, ty);
+	monster_goto_position(main_player, tx, ty);
+	//monster_attack(main_player, tx, ty);
 	return 0;
 }
 
@@ -125,7 +126,6 @@ int main(int argc, char *argv[])
 
 	gamestate_init();
 	fps_init();
-	pathfinder_setup(m->width, m->height);
 
 	global_GS.current_map = m;
 
@@ -230,25 +230,28 @@ int main(int argc, char *argv[])
 
 
 		const uint8_t *keystate = SDL_GetKeyboardState(NULL);
-		if ((keystate[SDL_SCANCODE_UP] || keystate[SDL_SCANCODE_W]) && 
-			py_getattr_int(p, ATTR_IN_MOVEMENT) == 0)
-			monster_goto_direction(p, DIRECTION_UP);
+		int mx = 0 , my = 0;
+		if ((keystate[SDL_SCANCODE_UP] || keystate[SDL_SCANCODE_W]))
+			my = -1;
 
-		if ((keystate[SDL_SCANCODE_DOWN] || keystate[SDL_SCANCODE_S]) &&
-			py_getattr_int(p, ATTR_IN_MOVEMENT) == 0)
-			monster_goto_direction(p, DIRECTION_DOWN);
+		if ((keystate[SDL_SCANCODE_DOWN] || keystate[SDL_SCANCODE_S]))
+			my = 1;
 
-		if ((keystate[SDL_SCANCODE_LEFT] || keystate[SDL_SCANCODE_A]) &&
-			py_getattr_int(p, ATTR_IN_MOVEMENT) == 0)
-			monster_goto_direction(p, DIRECTION_LEFT);
+		if ((keystate[SDL_SCANCODE_LEFT] || keystate[SDL_SCANCODE_A]))
+			mx = -1;
 
-		if ((keystate[SDL_SCANCODE_RIGHT] || keystate[SDL_SCANCODE_D]) &&
-			py_getattr_int(p, ATTR_IN_MOVEMENT) == 0)
-			monster_goto_direction(p, DIRECTION_RIGHT);
+		if ((keystate[SDL_SCANCODE_RIGHT] || keystate[SDL_SCANCODE_D]))
+			mx = 1;
+
+		if (mx != 0 || my != 0) {
+			monster_goto_position(p,
+				py_getattr_int(p, ATTR_X) + mx,
+				py_getattr_int(p, ATTR_Y) + my);
+		}
 
 		if (keystate[SDL_SCANCODE_Q]) quit++;
 		if (keystate[SDL_SCANCODE_M]) {
-			monster_goto_position(main_player, 5, 5);
+			monster_goto_position(main_player, 5*32, 5*32);
 		}
 		
 		monster_move(p);

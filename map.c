@@ -5,6 +5,7 @@
 #include "player.h"
 #include "sdl.h"
 #include "gamestate.h"
+#include "astar.h"
 
 #define USE_FOG 0
 int map_count = 0;
@@ -13,6 +14,16 @@ adv_tile EMPTY_TILE = {
 	NULL, -1, 0, 0, 0,
 };
 
+void
+raytrace_map_fill(uint8_t *map, int xpos, int ypos, int w, int h, int map_w)
+{
+	int x,y;
+	for(x = xpos; x < xpos+w; x++) {
+		for(y = ypos; y < ypos+w; y++) {
+			map[x+y*map_w] = 1;
+		}
+	}
+}
 
 adv_map *
 get_map(const char *map_name)
@@ -53,9 +64,11 @@ get_map(const char *map_name)
 
 	m->render_start_x = 0;
 	m->render_start_y = 0;
-	m->width = py_get_int_decref(PyObject_GetAttrString(map_inst, "width"));
-	m->height = py_get_int_decref(PyObject_GetAttrString(map_inst, "height"));
-	m->tiles = malloc(sizeof(adv_tile *) * m->width *  m->height);
+	m->tile_width = py_get_int_decref(PyObject_GetAttrString(map_inst, "width"));
+	m->tile_height = py_get_int_decref(PyObject_GetAttrString(map_inst, "height"));
+	m->width = m->tile_width * SPRITE_SIZE;
+	m->height = m->tile_height * SPRITE_SIZE;
+	m->tiles = malloc(sizeof(adv_tile *) * m->tile_width *  m->tile_height);
 
 	printf("Map size: %d x %d\n", m->width, m->height);
 	printf("tiles = %p\n", m->tiles);
@@ -71,8 +84,11 @@ get_map(const char *map_name)
 		return NULL;
 	}
 
+	m->raytrace_map = calloc(m->width * m->height,
+		sizeof *(m->raytrace_map));
+
 	int x, y;
-	for (y = 0; y < m->height; y ++) {
+	for (y = 0; y < m->tile_height; y ++) {
 		tile_list_row  = PyList_GetItem(tile_list, y);
 		if (tile_list_row == NULL) {
 			PyErr_Print();
@@ -80,7 +96,7 @@ get_map(const char *map_name)
 			return NULL;
 		}
 
-		for (x = 0; x < m->width; x ++) {
+		for (x = 0; x < m->tile_width; x ++) {
 			py_tile = PyList_GetItem(tile_list_row, x);
 			if (py_tile == NULL) {
 				printf("tile_list[%d][%d]:", y, x);
@@ -92,7 +108,17 @@ get_map(const char *map_name)
 				tile = &EMPTY_TILE;
 			else
 				tile = py_get_tile(py_tile);
-			m->tiles[y*m->width + x] = tile;
+
+			m->tiles[y*m->tile_width + x] = tile;
+
+			if (!tile->walkable) {
+				raytrace_map_fill(m->raytrace_map,
+					x * SPRITE_SIZE - SPRITE_SIZE/2 + 1,
+					y * SPRITE_SIZE - SPRITE_SIZE/2 + 1,
+					SPRITE_SIZE + SPRITE_SIZE - 1,
+					SPRITE_SIZE + SPRITE_SIZE - 1,
+					m->width); 
+			}
 		}
 	}
 
@@ -100,6 +126,14 @@ get_map(const char *map_name)
 	m->monster_list = PyObject_GetAttrString(map_inst, "monsters");
 	/* Get all objects currently on the map */
 	m->object_list = PyObject_GetAttrString(map_inst, "objects");
+
+
+	/* Prepare pathfinder for this map */
+	m->pathfinder = malloc(sizeof *m->pathfinder);
+	m->pathfinder->grid_width = m->tile_width;
+	m->pathfinder->grid_height = m->tile_height;
+	m->pathfinder->is_walkable = map_tile_is_walkable;
+	pathfinder_setup(m->pathfinder);
 	return m;
 }
 
@@ -142,7 +176,7 @@ map_pos_is_visible(adv_map *m, adv_monster *p, int map_x, int map_y)
 	y = map_y;
 
 	for(;;) {
-		if (m->tiles[x+y*m->width]->visibility == 0) {
+		if (m->tiles[x+y*m->tile_width]->visibility == 0) {
 			if (!(x == map_x && y == map_y))
 				return 0;
 		}
@@ -155,7 +189,7 @@ map_pos_is_visible(adv_map *m, adv_monster *p, int map_x, int map_y)
 			x += sx;
 		}
 		if (x == p->tile_x && y == p->tile_y) {
-//			if (m->tiles[x+y*m->width]->visibility == 0)
+//			if (m->tiles[x+y*m->tile_width]->visibility == 0)
 //				return 0;
 			break;
 		}
@@ -179,7 +213,7 @@ map_pos_is_visible(adv_map *m, adv_monster *p, int map_x, int map_y)
 
 	while (x != p->tile_x  || y != p->tile_y) {
 		if (x != map_x && y != map_y &&
-		    m->tiles[x+y*m->width]->visibility == 0)
+		    m->tiles[x+y*m->tile_width]->visibility == 0)
 			return 0;
 		if (x != p->tile_x) x += dx;
 		if (y != p->tile_y) y += dy;
@@ -212,7 +246,7 @@ map_pos_is_visible2(adv_map *m, adv_monster *p, int map_x, int map_y)
 		int tx, ty;
 		tx = x / SPRITE_SIZE;
 		ty = y / SPRITE_SIZE;
-		if (m->tiles[tx+ty*m->width]->visibility == 0) {
+		if (m->tiles[tx+ty*m->tile_width]->visibility == 0) {
 			if (!(tx == map_x / SPRITE_SIZE && 
 				ty == map_y / SPRITE_SIZE))
 				return 0;
@@ -226,7 +260,7 @@ map_pos_is_visible2(adv_map *m, adv_monster *p, int map_x, int map_y)
 			x += sx;
 		}
 		if (x == px && y == py) {
-//			if (m->tiles[x+y*m->width]->visibility == 0)
+//			if (m->tiles[x+y*m->tile_width]->visibility == 0)
 //				return 0;
 			break;
 		}
@@ -246,14 +280,14 @@ render_map(adv_map *m)
 	int x, y;
 
 	if (m->map_surface == NULL) {
-		m->map_surface = surface_sdl(m->width * SPRITE_SIZE,
+		m->map_surface = surface_sdl(m->tile_width * SPRITE_SIZE,
 		    m->height * SPRITE_SIZE);
 		SDL_SetSurfaceBlendMode(m->map_surface, SDL_BLENDMODE_NONE);
 
-		for(x = 0; x < m->width; x ++) {
-			for(y = 0; y < m->height; y ++) {
-				animation_render_sprite_full(m->tiles[x+y*m->width]->spritesheet,
-				    m->tiles[x+y*m->width]->spriteid,
+		for(x = 0; x < m->tile_width; x ++) {
+			for(y = 0; y < m->tile_height; y ++) {
+				animation_render_sprite_full(m->tiles[x+y*m->tile_width]->spritesheet,
+				    m->tiles[x+y*m->tile_width]->spriteid,
 				    map_to_screen_x(m, x),
 				    map_to_screen_y(m, y),
 				    m->map_surface);
@@ -264,7 +298,7 @@ render_map(adv_map *m)
 
 #if USE_FOG
 	if (m->fog_surface == NULL) {
-		m->fog_surface = surface_sdl(m->width * SPRITE_SIZE,
+		m->fog_surface = surface_sdl(m->tile_width * SPRITE_SIZE,
 		    m->height * SPRITE_SIZE);
 //		SDL_SetColorKey(m->fog_surface, SDL_TRUE, 0);
 		printf("[fog] format: %d\n",  m->fog_surface->format->format);
@@ -277,49 +311,46 @@ render_map(adv_map *m)
 
 		SDL_SetSurfaceBlendMode(m->fog_surface, SDL_BLENDMODE_BLEND);
 
-		m->fog_map = malloc(m->width * m->height);
+		m->fog_map = malloc(m->tile_width * m->tile_height);
 	}
 #endif
 
 	int start_x, start_y;
 	int end_x, end_y;
 	int screen_width, screen_height;
-	int map_width, map_height;
-	int xx, yy;
+	int px, py; /* Player position */
 	PyObject *p;
 
 	SDL_Rect clip;
 
 	p = main_player;
 
-	xx = py_getattr_int(p, ATTR_INT_X);
-	yy = py_getattr_int(p, ATTR_INT_Y);
+	px = py_getattr_int(p, ATTR_X);
+	py = py_getattr_int(p, ATTR_Y);
 
-	map_width = m->width * SPRITE_SIZE;
-	map_height = m->height * SPRITE_SIZE;
 	screen_width = rs.screen->w;
 	screen_height = rs.screen->h;
 
-	if (xx < screen_width / 2) {
+	if (px < screen_width / 2) {
 		start_x = 0;
 		end_x = screen_width;
-	} else if (xx > map_width - screen_width / 2) {
-		end_x = map_width;
-		start_x = map_width - screen_width;
+	} else if (px > m->width - screen_width / 2) {
+		end_x = m->width;
+		start_x = m->width - screen_width;
 	} else {
-		start_x = xx - screen_width / 2;
-		end_x = xx + screen_width / 2;
+		start_x = px - screen_width / 2;
+		end_x = px + screen_width / 2;
 	}
 
-	if (yy < screen_height / 2) {
+	if (py < screen_height / 2) {
 		start_y = 0;
 		end_y = screen_width;
-	} else if (yy > map_height - screen_height / 2) {
-		end_y = map_height;
-		start_y = map_height - screen_height;
+	} else if (py > m->height - screen_height / 2) {
+		end_y = m->height;
+		start_y = m->height - screen_height;
 	} else {
-		start_y = yy - screen_height / 2;
-		end_y = yy + screen_height / 2;
+		start_y = py - screen_height / 2;
+		end_y = py + screen_height / 2;
 	}
 
 
@@ -342,8 +373,8 @@ render_map(adv_map *m)
 
 	for (i = 0; i < PyList_Size(m->object_list); i ++) {
 		obj = PyList_GetItem(m->object_list, i);
-		x = py_getattr_int(obj,ATTR_X) * SPRITE_SIZE;
-		y = py_getattr_int(obj,ATTR_Y) * SPRITE_SIZE;
+		x = py_getattr_int(obj,ATTR_X);
+		y = py_getattr_int(obj,ATTR_Y);
 
 		if (x - start_x >= 0 &&
 			x - start_x < screen_width &&
@@ -360,12 +391,12 @@ render_map(adv_map *m)
 		dir = py_getattr_int(p, ATTR_DIRECTION);
 	if (py_getattr_int(p, ATTR_DRAW_MOVEMENT)) {
 		animation_render(py_getattr_list_int(p, ATTR_ANIMATION_MOVING, dir),
-		    xx - start_x,
-		    yy - start_y);
+		    px - start_x - SPRITE_SIZE/2,
+		    py - start_y - SPRITE_SIZE/2);
 	} else {
 		animation_render(py_getattr_list_int(p, ATTR_ANIMATION_STOPPED, dir),
-		    xx - start_x,
-		    yy - start_y);
+		    px - start_x - SPRITE_SIZE/2,
+		    py - start_y - SPRITE_SIZE/2);
 	}
 
 	/* Draw monsters */
@@ -380,8 +411,8 @@ render_map(adv_map *m)
 		else dir = 0;
 		dir = 0;
 
-		m_xx = py_getattr_int(monster, ATTR_INT_X);
-		m_yy = py_getattr_int(monster, ATTR_INT_Y);
+		m_xx = py_getattr_int(monster, ATTR_X);
+		m_yy = py_getattr_int(monster, ATTR_Y);
 
 		if (m_xx - start_x >= 0 &&
 			m_xx - start_x < screen_width &&
@@ -422,7 +453,9 @@ render_map(adv_map *m)
 	if (angle > -135 - 45.0/2 && angle <= -135 + 45.0/2) dir = 6; /* UP+LEFT */
 
 	if (dir > -1)
-	animation_render_sprite(rs.attack_cursor_sprites, dir, xx - start_x, yy - start_y);
+	animation_render_sprite(rs.attack_cursor_sprites, dir,
+		px - start_x - SPRITE_SIZE/2,
+		py - start_y - SPRITE_SIZE/2);
 
 	adv_animation_list *l;
 	l = rs.animation_list;
@@ -443,37 +476,34 @@ render_map(adv_map *m)
 }
 
 int
-map_get_tile_position_from_screen(int screen_x, int screen_y, int *tile_x, int *tile_y)
+map_get_position_from_screen(int screen_x, int screen_y, int *x, int *y)
 {
 	int start_x, start_y;
 	int screen_width, screen_height;
-	int map_width, map_height;
 
 	adv_map *m = global_GS.current_map;
 	PyObject *p = main_player;
 
-	map_width = m->width * SPRITE_SIZE;
-	map_height = m->height * SPRITE_SIZE;
 	screen_width = rs.screen->w;
 	screen_height = rs.screen->h;
 
 	int xx, yy;
 
-	xx = py_getattr_int(p, ATTR_INT_X);
-	yy = py_getattr_int(p, ATTR_INT_Y);
+	xx = py_getattr_int(p, ATTR_X);
+	yy = py_getattr_int(p, ATTR_Y);
 
 	if (xx < screen_width / 2) {
 		start_x = 0;
-	} else if (xx > map_width - screen_width / 2) {
-		start_x = map_width - screen_width;
+	} else if (xx > m->width - screen_width / 2) {
+		start_x = m->width - screen_width;
 	} else {
 		start_x = xx - screen_width / 2;
 	}
 
 	if (yy < screen_height / 2) {
 		start_y = 0;
-	} else if (yy > map_height - screen_height / 2) {
-		start_y = map_height - screen_height;
+	} else if (yy > m->height - screen_height / 2) {
+		start_y = m->height - screen_height;
 	} else {
 		start_y = yy - screen_height / 2;
 	}
@@ -481,16 +511,11 @@ map_get_tile_position_from_screen(int screen_x, int screen_y, int *tile_x, int *
 	if (start_x < 0) start_x = 0;
 	if (start_y < 0) start_y = 0;
 
-   *tile_x = 
-	   py_getattr_int(p, ATTR_X) +
-	   (screen_x*
-	   ((float)rs.screen->w / rs.real_screen->w) - (xx - start_x)) /
-		SPRITE_SIZE;
-	*tile_y = 
-		py_getattr_int(p, ATTR_Y) +
-		(screen_y*
-		((float)rs.screen->h / rs.real_screen->h) - (yy - start_y)) /
-		SPRITE_SIZE;
+   *x = (screen_x*
+	   ((float)rs.screen->w / rs.real_screen->w)); // + (xx - start_x));
+		
+	*y = (screen_y*
+		((float)rs.screen->h / rs.real_screen->h));// + (yy - start_y));
 	return 0;
 }
 
@@ -531,11 +556,22 @@ int call_tick_map_objects(adv_map *m)
 	return 0;
 }
 
-int
-map_tile_is_walkable(adv_map *m, int x, int y)
-{
 
-	if (m->tiles[x+y*m->width]->walkable == 0)
+/*
+ * map_tile_is_walkable(int x, int y, void *monster)
+ *
+ * Called by pathfinder to check if monster can go to x,y
+ */
+int
+map_tile_is_walkable(int x, int y, void *monster)
+{
+	adv_map *map = global_GS.current_map;
+	if (x < 0 || y < 0) return 0;
+	if (x > map->tile_width - 1 ||
+		y > map->tile_height - 1)
+		return 0;
+
+	if (map->tiles[x+y*map->tile_width]->walkable == 0)
 		return 0;
 	return 1;
 }
@@ -545,13 +581,53 @@ map_is_walkable(PyObject *m, int x, int y)
 {
 	adv_map *map;
 	int i;
+	int tx, ty;
 
 	map = global_GS.current_map;
 
 	if (x < 0 || y < 0) return 0;
 	if (x >= map->width || y >= map->height) return 0;
 
-	if (map->tiles[x+y*map->width]->walkable == 0)
+	/* Loop through possible target tiles, and check their
+	 * bounding-boxes against ours
+	 */
+	for (tx = x/SPRITE_SIZE; tx <= x/SPRITE_SIZE +  1; tx ++) {
+		for (ty = y/SPRITE_SIZE; ty <= y/SPRITE_SIZE + 1; ty ++) {
+
+			if (tx < 0 || ty < 0 || 
+				tx >= map->tile_width || ty >= map->tile_height)
+				continue;
+			if (map->tiles[tx+ty*map->tile_width]->walkable == 0) {
+
+				int box_sx, box_ex, box_sy, box_ey;
+
+				box_sx = tx*SPRITE_SIZE;
+				box_ex = box_sx + SPRITE_SIZE;
+
+				box_sy = ty*SPRITE_SIZE;
+				box_ey = box_sy + SPRITE_SIZE;
+
+				if (
+					((x > box_sx && x <= box_ex) &&
+					 (y > box_sy && y <= box_ey)) ||
+
+					((x + SPRITE_SIZE > box_sx && x + SPRITE_SIZE <= box_ex) &&
+					 (y > box_sy && y <= box_ey)) ||
+
+					((x > box_sx && x <= box_ex) &&
+					 (y + SPRITE_SIZE > box_sy && y + SPRITE_SIZE <= box_ey)) ||
+
+					((x + SPRITE_SIZE > box_sx && x + SPRITE_SIZE <= box_ex) &&
+					 (y + SPRITE_SIZE > box_sy && y + SPRITE_SIZE <= box_ey))
+				   )
+					return 0;
+			}
+		}
+	}
+
+	return 1;
+
+	if (map->tiles[x+y*map->tile_width]->walkable == 0)
 		return 0;
 
 	/* Allow the user to go to it's own location */
@@ -621,6 +697,49 @@ map_update_monster_animations(adv_map *map)
 
 		if (!py_getattr_int(monster, ATTR_IN_MOVEMENT))
 			py_setattr_int(monster, ATTR_DRAW_MOVEMENT, 0);
+	}
+	return 1;
+}
+
+int
+map_has_line_of_sight(int x1, int y1, int x2, int y2)
+{
+	int dx = 0, dy = 0;
+	int x,y;
+	int sx, sy;
+	int err;
+	adv_map *m;
+
+	dx = abs(x1-x2);
+	dy = abs(y1-y2);
+	if (x2 < x1) sx = 1; else sx = -1;
+	if (y2 < y1) sy = 1; else sy = -1;
+	err = dx-dy;
+	x = x2;
+	y = y2;
+
+	m = global_GS.current_map;
+
+	for(;;) {
+		if (m->raytrace_map[x+y*m->width] != 0) {
+			return 0;
+		}
+
+		if (x == x1 && y == y1)
+			break;
+
+		int e2 = 2 * err;
+		if (e2 > -dy) {
+			err = err - dy;
+			x += sx;
+		}
+		if (x == x1 && y == y1) {
+			break;
+		}
+		if (e2 < dx) {
+			err = err + dx;
+			y += sy;
+		}
 	}
 	return 1;
 }

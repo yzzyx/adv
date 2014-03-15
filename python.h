@@ -7,8 +7,8 @@
 typedef struct t_adv_tile adv_tile;
 extern PyObject *main_dict;
 
-int py_get_int(PyObject *obj);
-int py_get_int_decref(PyObject *obj);
+long py_get_int(PyObject *obj);
+long py_get_int_decref(PyObject *obj);
 int pyobj_is_dirty(PyObject *obj);
 int py_update_object_timer(PyObject *obj);
 
@@ -32,20 +32,17 @@ typedef enum{
 
 	/* Used by engine */
 	ATTR_INT_SPEED,
-	ATTR_INT_X,
-	ATTR_INT_Y,
-	ATTR_INT_MOD_X,
-	ATTR_INT_MOD_Y,
-	ATTR_INT_TARGET_TILE_X,
-	ATTR_INT_TARGET_TILE_Y,
+	ATTR_INT_TARGET_X,
+	ATTR_INT_TARGET_Y,
 	ATTR_INT_ATTACK_TARGET_X,
 	ATTR_INT_ATTACK_TARGET_Y,
+	ATTR_INT_ACTIVE_PATH,
 
 	ATTR_MAX
 }attribute_enum;
 
-int py_getattr_int(PyObject *obj, attribute_enum attr);
-int py_getattr_list_int(PyObject *obj, attribute_enum attr, int item);
-int py_setattr_int(PyObject *obj, attribute_enum attr, int val);
+long py_getattr_int(PyObject *obj, attribute_enum attr);
+long py_getattr_list_int(PyObject *obj, attribute_enum attr, int item);
+int py_setattr_int(PyObject *obj, attribute_enum attr, long val);
 
 #endif /* end of include guard: ADV_PYTHON_H */

@@ -252,10 +252,10 @@ static PyMethodDef methods[] = {
 };
 
 
-int
+long
 py_get_int(PyObject *obj)
 {
-	int intval;
+	long intval;
 
 	if (obj == NULL) {
 		PyErr_Print();
@@ -269,10 +269,10 @@ py_get_int(PyObject *obj)
 	return intval;
 }
 
-int
+long
 py_get_int_decref(PyObject *obj)
 {
-	int intval;
+	long intval;
 	if (obj == NULL) {
 		PyErr_Print();
 		return 0;
@@ -323,7 +323,7 @@ py_get_tile(PyObject *py_obj)
 int
 py_update_object_timer(PyObject *obj)
 {
-	int timer;
+	long timer;
 
 	timer = py_getattr_int(obj, ATTR_TIMER);
 	if (timer == -1)
@@ -399,28 +399,26 @@ setup_python(int argc, char *argv[])
 	attribute_list[ATTR_DIRECTION] = PyString_FromString("direction");
 
 	attribute_list[ATTR_INT_SPEED] = PyString_FromString("int_speed");
-	attribute_list[ATTR_INT_X] = PyString_FromString("int_x");
-	attribute_list[ATTR_INT_Y] = PyString_FromString("int_y");
-	attribute_list[ATTR_INT_MOD_X] = PyString_FromString("int_mod_x");
-	attribute_list[ATTR_INT_MOD_Y] = PyString_FromString("int_mod_y");
-	attribute_list[ATTR_INT_TARGET_TILE_X] =
-		PyString_FromString("int_target_tile_x");
-	attribute_list[ATTR_INT_TARGET_TILE_Y] =
-		PyString_FromString("int_target_tile_y");
+	attribute_list[ATTR_INT_TARGET_X] =
+		PyString_FromString("int_target_x");
+	attribute_list[ATTR_INT_TARGET_Y] =
+		PyString_FromString("int_target_y");
 	attribute_list[ATTR_INT_ATTACK_TARGET_X] =
 		PyString_FromString("int_attack_target_x");
 	attribute_list[ATTR_INT_ATTACK_TARGET_Y] =
 		PyString_FromString("int_attack_target_y");
+	attribute_list[ATTR_INT_ACTIVE_PATH] =
+		PyString_FromString("int_active_path");
 
 	Py_DECREF(p);
 	return 0;
 }
 
-int
+long
 py_getattr_int(PyObject *obj, attribute_enum attr)
 {
 	PyObject *py_int;
-	int c_int = -1;
+	long c_int = -1;
 
 	py_int = PyObject_GetAttr(obj, attribute_list[attr]);
 	if (!py_int || py_int == Py_None) {
@@ -432,12 +430,12 @@ py_getattr_int(PyObject *obj, attribute_enum attr)
 	return c_int;
 }
 
-int
+long
 py_getattr_list_int(PyObject *obj, attribute_enum attr, int item)
 {
 	PyObject *py_list;
 	PyObject *py_int;
-	int c_int = 0;
+	long c_int = 0;
 
 	py_list = PyObject_GetAttr(obj, attribute_list[attr]);
 	py_int = PyList_GetItem(py_list, item);
@@ -453,7 +451,7 @@ py_getattr_list_int(PyObject *obj, attribute_enum attr, int item)
 }
 
 int
-py_setattr_int(PyObject *obj, attribute_enum attr, int val)
+py_setattr_int(PyObject *obj, attribute_enum attr, long val)
 {
 	PyObject *py_int;
 

@@ -1,14 +1,15 @@
+#include <math.h>
+#include "astar.h"
 #include "python.h"
 #include "animation.h"
 #include "sdl.h"
 #include "player.h"
 #include "common.h"
-#include "astar.h"
 #include "map.h"
 #include "python.h"
 #include "gamestate.h"
 
-#define TICK_LENGTH 3
+#define PI 3.14159265358979323846
 
 PyObject *
 setup_player()
@@ -34,177 +35,96 @@ setup_player()
 	}
 
 	py_setattr_int(p, ATTR_DIRECTION, 0);
-	py_setattr_int(p, ATTR_INT_X,
-		py_getattr_int(p, ATTR_X) * SPRITE_SIZE);
-	py_setattr_int(p, ATTR_INT_Y,
-		py_getattr_int(p, ATTR_Y) * SPRITE_SIZE);
-	py_setattr_int(p, ATTR_INT_TARGET_TILE_X, py_getattr_int(p, ATTR_X));
-	py_setattr_int(p, ATTR_INT_TARGET_TILE_Y, py_getattr_int(p, ATTR_Y));
+	py_setattr_int(p, ATTR_X, 25);
+	py_setattr_int(p, ATTR_Y, 25);
+	py_setattr_int(p, ATTR_INT_TARGET_X, py_getattr_int(p, ATTR_X));
+	py_setattr_int(p, ATTR_INT_TARGET_Y, py_getattr_int(p, ATTR_Y));
 	return p;
 }
 
-/* collision_player(player, map)
- *
- * Check for collision
- */
-int
-player_map_is_walkable(PyObject *p)
-{
-	int tx, ty;
-	int min_x, min_y, max_x, max_y;
-	int xx, yy;
 
-	xx = py_getattr_int(p, ATTR_INT_X);
-	yy = py_getattr_int(p, ATTR_INT_Y);
-	min_x = xx / SPRITE_SIZE;
-	min_y = yy / SPRITE_SIZE;
-
-	max_x = min_x + (((xx % SPRITE_SIZE) > 0) ? 1:0);
-	max_y = min_y + (((yy % SPRITE_SIZE) > 0) ? 1:0);
-	if (max_x >= global_GS.current_map->width)
-		max_x = global_GS.current_map->width - 1;
-	if (max_y >= global_GS.current_map->height)
-		max_y = global_GS.current_map->height - 1;
-
-	for (tx = min_x; tx <= max_x; tx ++) {
-		for (ty = min_y; ty <= max_y; ty ++) {
-			if (!global_GS.current_map->tiles[tx+ty*global_GS.current_map->width]->walkable)
-				return 0;
-		}
-	}
-	return 1;
-}
-
-int
-monster_move_direction_int(PyObject *p, int direction)
-{
-	int mx = 0, my = 0;
-
-	/* Assume we will not move */
-	py_setattr_int(p, ATTR_IN_MOVEMENT, 0);
-
-	switch(direction) {
-		case DIRECTION_UP: mx = 0; my = -1; break;
-		case DIRECTION_DOWN: mx = 0; my = 1; break;
-		case DIRECTION_LEFT: mx = -1; my = 0; break;
-		case DIRECTION_RIGHT: mx = 1; my = 0; break;
-		default:
-			return 0;
-			break;
-	}
-
-	int mod_x, mod_y;
-	int tile_x, tile_y;
-
-	tile_x = py_getattr_int(p, ATTR_X);
-	tile_y = py_getattr_int(p, ATTR_Y);
-	mod_x = py_getattr_int(p, ATTR_INT_MOD_X);
-	mod_y = py_getattr_int(p, ATTR_INT_MOD_Y);
-	/* Don't even try to walk where we can't */
-	if (mod_x == 0 && mod_y == 0 &&
-	    !map_is_walkable(p, tile_x + mx, tile_y + my)) {
-		return 0;
-	}
-
-	py_setattr_int(p, ATTR_DIRECTION, direction);
-	py_setattr_int(p, ATTR_IN_MOVEMENT, 1);
-	py_setattr_int(p, ATTR_DRAW_MOVEMENT, 1);
-
-	int i;
-	int speed;
-
-	speed = py_getattr_int(p, ATTR_INT_SPEED);
-	for (i=0; i < speed; i ++) {
-		mod_x += mx;
-		mod_y += my;
-
-		if (mod_x == mx * (SPRITE_SIZE>>1) &&
-		    mod_y == my * (SPRITE_SIZE>>1)) {
-			tile_x += mx;
-			tile_y += my;
-			mod_x = -mod_x;
-			mod_y = -mod_y;
-
-			py_setattr_int(p, ATTR_X, tile_x);
-			py_setattr_int(p, ATTR_Y, tile_y);
-		}
-
-		if (mod_x == 0  && mod_y == 0) {
-			py_setattr_int(p, ATTR_IN_MOVEMENT, 0);
-			/*
-			if (p->queued_target_x != -1) {
-				p->target_tile_x = p->queued_target_x;
-				p->queued_target_x = -1;
-			}
-			if (p->queued_target_y != -1) {
-				p->target_tile_y = p->queued_target_y;
-				p->queued_target_y = -1;
-			}
-			*/
-			break;
-		}
-	}
-
-	py_setattr_int(p, ATTR_INT_MOD_X, mod_x);
-	py_setattr_int(p, ATTR_INT_MOD_Y, mod_y);
-	py_setattr_int(p, ATTR_INT_X, tile_x * SPRITE_SIZE + mod_x);
-	py_setattr_int(p, ATTR_INT_Y, tile_y * SPRITE_SIZE + mod_y);
-
-	return 1;
-}
 
 /* move_player
  *
  * called each tick, updating the player's position
  */
 int
-monster_move(PyObject *p)
+monster_move(PyObject *monster)
 {
-	int dir;
-	int x2, y2;
-	int tile_x, tile_y;
-	int target_tile_x, target_tile_y;
-	int mod_x, mod_y;
+	int x1, y1; /* current position */
+	int x2, y2; /* target position */
+	int speed;
+	node_t *active_path;
 
-	target_tile_x = py_getattr_int(p, ATTR_INT_TARGET_TILE_X);
-	target_tile_y = py_getattr_int(p, ATTR_INT_TARGET_TILE_Y);
-	tile_x = py_getattr_int(p, ATTR_X);
-	tile_y = py_getattr_int(p, ATTR_Y);
-	mod_x = py_getattr_int(p, ATTR_INT_MOD_X);
-	mod_y = py_getattr_int(p, ATTR_INT_MOD_Y);
-
-	if (mod_x == 0 && mod_y == 0 &&
-	    target_tile_x == tile_x && target_tile_y == tile_y)
+	/* Check if we have an active path */
+	active_path = (node_t*)py_getattr_int(monster, ATTR_INT_ACTIVE_PATH);
+	if (active_path == 0)
 		return 0;
 
-	if (mod_x != 0 || mod_y != 0)
-		return monster_move_direction_int(p, py_getattr_int(p, ATTR_DIRECTION));
+	x1 = py_getattr_int(monster, ATTR_X);
+	y1 = py_getattr_int(monster, ATTR_Y);
+	x2 = active_path->x;
+	y2 = active_path->y;
+	speed = py_getattr_int(monster, ATTR_INT_SPEED);
 
-	if (target_tile_x == tile_x - 1 && target_tile_y == tile_y)
-		return monster_move_direction_int(p, DIRECTION_LEFT);
-	if (target_tile_x == tile_x + 1 && target_tile_y == tile_y)
-		return monster_move_direction_int(p, DIRECTION_RIGHT);
-	if (target_tile_x == tile_x && target_tile_y == tile_y - 1)
-		return monster_move_direction_int(p, DIRECTION_UP);
-	if (target_tile_x == tile_x && target_tile_y == tile_y + 1)
-		return monster_move_direction_int(p, DIRECTION_DOWN);
+	printf("%d,%d -> %d,%d\n", x1,y1,x2,y2);
+	/* monster-move-int
+	 * ----------------
+	 */
+	
+	int dx = 0, dy = 0;
+	int sx, sy;
+	int err;
+	int x, y;
+	int i;
 
-	x2 = target_tile_x;
-	y2 = target_tile_y;
-	dir = pathfinder(p, tile_x, tile_y, &x2, &y2);
-	return monster_move_direction_int(p, dir);
+	dx = abs(x2-x1);
+	dy = abs(y2-y1);
+	if (x1 < x2) sx = 1; else sx = -1;
+	if (y1 < y2) sy = 1; else sy = -1;
+	err = dx-dy;
+	x = x1;
+	y = y1;
+
+	for(i = 0;i < speed; i++) {
+		if (x == x2 && y == y2)
+			break;
+
+		int e2 = 2 * err;
+		if (e2 > -dy) {
+			err = err - dy;
+			x += sx;
+		}
+		if (x == x2 && y == y2) {
+			break;
+		}
+		if (e2 < dx) {
+			err = err + dx;
+			y += sy;
+		}
+	}
+	py_setattr_int(monster, ATTR_X, x);
+	py_setattr_int(monster, ATTR_Y, y);
+
+	/* We've reached our target */
+	if (x == x2 && y == y2) {
+		printf("At target. Next: %p\n", active_path->child);
+		active_path = active_path->child;
+		py_setattr_int(monster, ATTR_INT_ACTIVE_PATH, (long)active_path);
+	}
+	return 0;
 
 #if 0
 	/* FIXME! Call playerExit-method on tile we're leaving*/
 	tmp = PyObject_CallMethod(
-	    p->map->tiles[prev_tile_x + prev_tile_y * p->map->width]->py_obj,
-	    "playerExit", "", NULL);
+		p->map->tiles[prev_tile_x + prev_tile_y * p->map->width]->py_obj,
+		"playerExit", "", NULL);
 	if (tmp == NULL) { PyErr_Print(); return -1; }
 	Py_DECREF(tmp);
 
 	/* FIXME! Call playerEnter-method on tile we're entering*/
 	tmp = PyObject_CallMethod(p->map->tiles[p->tile_x + p->tile_y * p->map->width]->py_obj,
-	    "playerEnter", "", NULL);
+		"playerEnter", "", NULL);
 	if (tmp == NULL) { PyErr_Print(); return -1; }
 	Py_DECREF(tmp);
 	p->is_dirty = 1;
@@ -222,10 +142,12 @@ monster_goto_direction(PyObject *p, int direction)
 {
 	int mx, my;
 	int target_x, target_y;
-	int tile_x, tile_y;
+	int curr_x, curr_y;
+	int speed;
 
-	tile_x = py_getattr_int(p, ATTR_X);
-	tile_y = py_getattr_int(p, ATTR_Y);
+	curr_x = py_getattr_int(p, ATTR_X);
+	curr_y = py_getattr_int(p, ATTR_Y);
+	speed = py_getattr_int(p, ATTR_INT_SPEED);
 
 	switch(direction) {
 		case DIRECTION_UP: mx = 0; my = -1; break;
@@ -237,8 +159,8 @@ monster_goto_direction(PyObject *p, int direction)
 			break;
 	}
 
-	target_x = tile_x + mx;
-	target_y = tile_y + my;
+	target_x = curr_x + mx * speed;
+	target_y = curr_y + my * speed;
 	if (target_x < 0) target_x = 0;
 	if (target_y < 0) target_y = 0;
 	if (target_x >= global_GS.current_map->width)
@@ -247,21 +169,15 @@ monster_goto_direction(PyObject *p, int direction)
 		target_y = global_GS.current_map->height - 1;
 
 	/* Don't even try to walk where we can't */
-	if (!map_is_walkable(p, target_x, target_y))
+	if (!map_is_walkable(p, target_x, target_y)) {
+		printf("Map is not walkable there...\n");
 		return 0;
-
-	/*
-	if (p->in_movement) {
-		p->queued_target_x = target_x;
-		p->queued_target_y = target_y;
-	} else {
-		p->target_tile_x = target_x;
-		p->target_tile_y = target_y;
 	}
-	 p->is_dirty = 1;
-	*/
-	py_setattr_int(p, ATTR_INT_TARGET_TILE_X, target_x);
-	py_setattr_int(p, ATTR_INT_TARGET_TILE_Y, target_y);
+
+	py_setattr_int(p, ATTR_INT_TARGET_X, target_x);
+	py_setattr_int(p, ATTR_INT_TARGET_Y, target_y);
+	py_setattr_int(p, ATTR_DIRECTION, direction);
+	py_setattr_int(p, ATTR_IN_MOVEMENT, 1);
 
 	return 1;
 }
@@ -274,76 +190,95 @@ monster_goto_direction(PyObject *p, int direction)
  * Returns 1 if it's possible, or 0 otherwise
  */
 int
-monster_goto_position(PyObject *p, int x, int y)
+monster_goto_position(PyObject *monster, int x, int y)
 {
-	if (x < 0) x = 0;
-	if (y < 0) y = 0;
-	if (x >= global_GS.current_map->width)
-		x = global_GS.current_map->width - 1;
-	if (y >= global_GS.current_map->height)
-		y = global_GS.current_map->height - 1;
+	int monster_x, monster_y;
+	node_t *active_path;
 
-	/*
-	if (p->in_movement) {
-		p->queued_target_x = x;
-		p->queued_target_y = y;
-	} else {
-		p->target_tile_x = x;
-		p->target_tile_y = y;
+	/* don't walk outside of map */
+	if (x < SPRITE_SIZE/2) x = SPRITE_SIZE/2;
+	if (y < SPRITE_SIZE/2) y = SPRITE_SIZE/2;
+	if (x >= global_GS.current_map->width - SPRITE_SIZE/2)
+		x = global_GS.current_map->width - SPRITE_SIZE/2;
+	if (y >= global_GS.current_map->height - SPRITE_SIZE/2)
+		y = global_GS.current_map->height - SPRITE_SIZE/2;
+
+	/* check if target position is even a valid position */
+	if (global_GS.current_map->raytrace_map
+		[x+y*global_GS.current_map->width] != 0) {
+		return 0;
 	}
-	p->is_dirty = 1;
-	*/
-	py_setattr_int(p, ATTR_INT_TARGET_TILE_X, x);
-	py_setattr_int(p, ATTR_INT_TARGET_TILE_Y, y);
-	
+
+	monster_x = py_getattr_int(monster, ATTR_X);
+	monster_y = py_getattr_int(monster, ATTR_Y);
+
+	/* Check if we already have an active path */
+	active_path = (node_t*)py_getattr_int(monster, ATTR_INT_ACTIVE_PATH);
+	if (active_path) {
+		while (active_path->child) {
+			active_path = active_path->child;
+		}
+
+		/* We've already got a path to this place, don't
+		 * do anything
+		 */
+		if (active_path->x == x && active_path->y == y)
+			return 0;
+
+		/* We need a new path, get rid of the old one */
+		pathfinder_free_path(active_path);
+	}
+
+	if (map_has_line_of_sight(monster_x, monster_y, x, y)) {
+
+		/* We can walk directly to this point,
+		 * so create a path to it
+		 */
+		active_path = calloc(1,sizeof(*active_path));
+		active_path->child = NULL;
+		active_path->parent = NULL;
+		active_path->x = x;
+		active_path->y = y;
+
+		py_setattr_int(monster, ATTR_INT_ACTIVE_PATH, (long)active_path);
+		return 0;
+	}
+
+
+	/* Note that we're working with grid-coordinates in the pathfinder,
+	 * to speed things up, and make it less resource-hungry
+	 */
+	active_path = pathfinder(global_GS.current_map->pathfinder, monster,
+	    monster_x / SPRITE_SIZE, monster_y / SPRITE_SIZE,
+	    x / SPRITE_SIZE, y / SPRITE_SIZE); 
+
+	if (!active_path) {
+		printf("No path from %d,%d to %d,%d\n",
+		    monster_x, monster_y, x, y);
+		return 0;
+	}
+
+	/* Convert path from grid-coordinates to real coordinates */
+	node_t *node;
+	for (node = active_path; node != NULL; node = node->child) {
+		node->x = node->x * SPRITE_SIZE + SPRITE_SIZE/2;
+		node->y = node->y * SPRITE_SIZE + SPRITE_SIZE/2;
+	}
+
+	/* FIXME - prune path */
+
+	py_setattr_int(monster, ATTR_INT_ACTIVE_PATH, (long)active_path);
 	return 0;
 }
 
 int
-monster_position_is_visible(PyObject *m, int map_x, int map_y)
+monster_position_is_visible(PyObject *monster, int map_x, int map_y)
 {
-	int dx = 0, dy = 0;
-	int x,y;
-	int sx, sy;
-	int err;
+	int monster_x, monster_y;
 
-	int tile_x, tile_y;
-	tile_x = py_getattr_int(m, ATTR_X);
-	tile_y = py_getattr_int(m, ATTR_Y);
-	
-	dx = abs(tile_x-map_x);
-	dy = abs(tile_y-map_y);
-	if (map_x < tile_x) sx = 1; else sx = -1;
-	if (map_y < tile_y) sy = 1; else sy = -1;
-	err = dx-dy;
-	x = map_x;
-	y = map_y;
-
-	for(;;) {
-		if (global_GS.current_map->tiles[x+y*
-		    global_GS.current_map->width]->visibility == 0) {
-			if (!(x == map_x && y == map_y))
-				return 0;
-		}
-
-		if (x == tile_x && y == tile_y)
-			break;
-		int e2 = 2 * err;
-		if (e2 > -dy) {
-			err = err - dy;
-			x += sx;
-		}
-		if (x == tile_x && y == tile_y) {
-//			if (m->tiles[x+y*m->width]->visibility == 0)
-//				return 0;
-			break;
-		}
-		if (e2 < dx) {
-			err = err + dx;
-			y += sy;
-		}
-	}
-	return 1;
+	monster_x = py_getattr_int(monster, ATTR_X);
+	monster_y = py_getattr_int(monster, ATTR_Y);
+	return map_has_line_of_sight(monster_x, monster_y, map_x, map_y);
 }
 
 /*
@@ -355,7 +290,7 @@ monster_position_is_visible(PyObject *m, int map_x, int map_y)
 int
 monster_attack(PyObject *m, int x, int y)
 {
-
+	/* FIXME - needs to be redone after free-walk patch */
 	int dir = 0;
 	int mx = 0, my = 0;
 	int tile_x, tile_y;
@@ -364,7 +299,7 @@ monster_attack(PyObject *m, int x, int y)
 	tile_y = py_getattr_int(m, ATTR_Y);
 
 	float angle = atan2f(x - tile_x,
-						 y - tile_y) * 180/M_PI;
+						 y - tile_y) * 180/PI;
 
 	/* Straight directions */
 	if (angle >   0 - 45.0/2 && angle <=   0 + 45.0/2) {
@@ -399,7 +334,7 @@ monster_attack(PyObject *m, int x, int y)
 		my = -1;
 	}
 
-	animation_play(rs.attack_animations[dir], tile_x + mx, tile_y + my);
+	animation_play(rs.attack_animations[dir], tile_x + mx * SPRITE_SIZE, tile_y + my * SPRITE_SIZE);
 
 	/* Check if player is standing there */
 	/* FIXME - do this with new attr-code */
