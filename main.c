@@ -220,12 +220,11 @@ int main(int argc, char *argv[])
 			if (event.type == SDL_WINDOWEVENT &&
 			    event.window.event == SDL_WINDOWEVENT_RESIZED) {
 				sdl_resize_event(&event);
-			if (event.type == SDL_MOUSEBUTTONDOWN) {
+			} else if (event.type == SDL_MOUSEBUTTONDOWN) {
 				if (event.button.button == SDL_BUTTON_LEFT) {
 					attack_event(&event);
 				}
-			}
-			if (event.type == SDL_MOUSEMOTION) {
+			} else if (event.type == SDL_MOUSEMOTION) {
 				mouse_move_event(&event);
 			}
 		}
