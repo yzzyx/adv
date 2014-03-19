@@ -146,6 +146,10 @@ int main(int argc, char *argv[])
 			if (event.type == SDL_QUIT) {
 			       quit = 1;
 			}
+			if (event.type == SDL_WINDOWEVENT &&
+			    event.window.event == SDL_WINDOWEVENT_RESIZED) {
+				sdl_resize_event(&event);
+			}
 		}
 
 
