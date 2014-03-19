@@ -5,16 +5,32 @@
 #include "map.h"
 #include "python.h"
 #include "astar.h"
+#include "object.h"
 
 PyObject *main_module;
 PyObject *main_dict;
+
+PyObject *attribute_list[ATTR_MAX];
+
+void
+py_CallMethodNoArgs(PyObject *obj, char *method)
+{
+	PyObject *tmp;
+
+	if (!PyObject_HasAttrString(obj,method))
+		return;
+	tmp = PyObject_CallMethod(obj, method, NULL);
+	if (tmp)
+		Py_DECREF(tmp);
+}
 
 /*
  * py_animLoadSpritesheet(): [animLoadSpritesheet(filename, useAlphaBlend = 1)]
  *
  * Load a spritesheet, with alpha if specified
  */
-PyObject *py_animLoadSpritesheet(PyObject *self, PyObject *args)
+PyObject *
+py_animLoadSpritesheet(PyObject *self, PyObject *args)
 {
 	const char *filename;
 	int ss_id = 0;
@@ -39,7 +55,8 @@ PyObject *py_animLoadSpritesheet(PyObject *self, PyObject *args)
  *
  * Create an animation from a given spritesheet
  */
-PyObject *py_animCreate(PyObject *self, PyObject *args)
+PyObject *
+py_animCreate(PyObject *self, PyObject *args)
 {
 	int ss_id;
 	int start;
@@ -63,11 +80,12 @@ PyObject *py_animCreate(PyObject *self, PyObject *args)
  *
  * Returns the player object
  */
-PyObject *py_getPlayer(PyObject *self, PyObject *args)
+PyObject *
+py_getPlayer(PyObject *self, PyObject *args)
 {
 
-	Py_INCREF(main_player->py_obj);
-	return main_player->py_obj;
+	Py_INCREF(main_player);
+	return main_player;
 }
 
 /*
@@ -75,7 +93,8 @@ PyObject *py_getPlayer(PyObject *self, PyObject *args)
  *
  * Returns distance between two points
  */
-PyObject *py_getDistance(PyObject *self, PyObject *args)
+PyObject *
+py_getDistance(PyObject *self, PyObject *args)
 {
 	int x1, y1, x2, y2;
 
@@ -100,7 +119,8 @@ PyObject *py_getDistance(PyObject *self, PyObject *args)
  * to (x1,y1). Return value is a string, which can contain 4 different
  * characters - N,E,S,W
  */
-PyObject *py_getPath(PyObject *self, PyObject *args)
+PyObject *
+py_getPath(PyObject *self, PyObject *args)
 {
 	PyObject *monster;
 	int x1, y1;
@@ -130,7 +150,8 @@ PyObject *py_getPath(PyObject *self, PyObject *args)
  * Returns true if position (x,y) is visible for monster, otherwise false
  *
  */
-PyObject *py_isVisible(PyObject *self, PyObject *args)
+PyObject *
+py_isVisible(PyObject *self, PyObject *args)
 {
 	PyObject *monster;
 	int x1, y1;
@@ -142,11 +163,9 @@ PyObject *py_isVisible(PyObject *self, PyObject *args)
 	}
 
 
-	adv_monster *m;
 	int isvisible;
 
-	m = monster_get_from_pyobj(monster);
-	isvisible = monster_position_is_visible(m, x1, y1);
+	isvisible = monster_position_is_visible(monster, x1, y1);
 	return PyBool_FromLong(isvisible);
 }
 
@@ -156,7 +175,8 @@ PyObject *py_isVisible(PyObject *self, PyObject *args)
  * Monster will start walking towards (x,y)
  *
  */
-PyObject *py_monster_gotoPosition(PyObject *self, PyObject *args)
+PyObject *
+py_monster_gotoPosition(PyObject *self, PyObject *args)
 {
 	PyObject *monster;
 	int x1, y1;
@@ -167,10 +187,8 @@ PyObject *py_monster_gotoPosition(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	adv_monster *m;
 
-	m = monster_get_from_pyobj(monster);
-	monster_goto_position(m, x1, y1);
+	monster_goto_position(monster, x1, y1);
 	return PyBool_FromLong(1);
 }
 
@@ -180,7 +198,8 @@ PyObject *py_monster_gotoPosition(PyObject *self, PyObject *args)
  * Monster will start walking in direction dir
  *
  */
-PyObject *py_monster_gotoDirection(PyObject *self, PyObject *args)
+PyObject *
+py_monster_gotoDirection(PyObject *self, PyObject *args)
 {
 	PyObject *monster;
 	int dir;
@@ -191,133 +210,31 @@ PyObject *py_monster_gotoDirection(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-	adv_monster *m;
 	int ret;
 
-	m = monster_get_from_pyobj(monster);
-	ret = monster_goto_direction(m, dir);
+	ret = monster_goto_direction(monster, dir);
 	return PyBool_FromLong(ret);
 }
 
-int
-pyobj_is_dirty(PyObject *obj)
-{
-	return py_get_int_decref(PyObject_GetAttrString(obj, "is_dirty"));
-}
-
-int 
-py_update_base_object(adv_base_object *obj)
-{
-	obj->timer = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "timer"));
-	obj->has_directions = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "has_directions"));
-
-	return 0;
-}
-
-int
-py_update_monster(adv_monster *monster)
-{
-	/*
-	PyObject *sprite_animation;
-	sprite_animation = PyObject_GetAttrString(monster->py_obj, "sprite_animation");
-	if (sprite_animation == NULL) {
-		monster->animation_id = -1;
-		PyErr_Print();
-		return -1;
-	} else {
-		monster->animation_id = py_get_int(PyDict_GetItemString(sprite_animation, "id"));
-		monster->animation_frame = py_get_int(PyDict_GetItemString(sprite_animation, "current_frame"));
-	}
-	*/
-	py_update_base_object((adv_base_object*)monster);
-
-	monster->spritesheet = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "spritesheet"));
-
-	PyObject *list;
-	list = PyObject_GetAttrString(monster->py_obj, "animation_stopped");
-	if (list == NULL) {
-		PyErr_Print();
-		monster->animation_stopped[0] = -1;
-		monster->animation_stopped[1] = -1;
-		monster->animation_stopped[2] = -1;
-		monster->animation_stopped[3] = -1;
-	} else {
-		monster->animation_stopped[0] = py_get_int(PyList_GetItem(list, 0));
-		if (monster->has_directions) {
-			monster->animation_stopped[1] = py_get_int(PyList_GetItem(list, 1));
-			monster->animation_stopped[2] = py_get_int(PyList_GetItem(list, 2));
-			monster->animation_stopped[3] = py_get_int(PyList_GetItem(list, 3));
-		}
-	}
-	
-	list = PyObject_GetAttrString(monster->py_obj, "animation_moving");
-	if (list == NULL) {
-		PyErr_Print();
-		monster->animation_moving[0] = -1;
-		monster->animation_moving[1] = -1;
-		monster->animation_moving[2] = -1;
-		monster->animation_moving[3] = -1;
-	} else {
-		monster->animation_moving[0] = py_get_int(PyList_GetItem(list, 0));
-		if (monster->has_directions) {
-			monster->animation_moving[1] = py_get_int(PyList_GetItem(list, 1));
-			monster->animation_moving[2] = py_get_int(PyList_GetItem(list, 2));
-			monster->animation_moving[3] = py_get_int(PyList_GetItem(list, 3));
-		}
-	}
-
-	monster->hp = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "hp"));
-	monster->mp = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "mp"));
-	monster->tile_x = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "x"));
-	monster->tile_y = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "y"));
-
 /*
-	if (monster->xx % FRAME_WIDTH != monster->tile_x)
-		monster->xx = monster->tile_x * FRAME_WIDTH;
-	if (monster->yy % FRAME_WIDTH != monster->tile_x)
-		monster->yy = monster->tile_y * FRAME_WIDTH;
-*/
-//	monster->target_tile_x = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_x"));
-//	monster->target_tile_y = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "target_y"));
-	monster->speed = py_get_int_decref(PyObject_GetAttrString(monster->py_obj, "speed"));
-	PyObject_SetAttrString(monster->py_obj, "is_dirty", Py_BuildValue("i", 0));
-	return 0;
-}
-
-int
-py_update_monster_from_c(adv_monster *monster)
+ * py_monster_attack(): [monster_attack(monster, x, y)]
+ *
+ * Monster should attack tile x,y
+ */
+PyObject *
+py_monster_attack(PyObject *self, PyObject *args)
 {
-	PyObject_SetAttrString(monster->py_obj, "hp", Py_BuildValue("i", monster->hp));
-	PyObject_SetAttrString(monster->py_obj, "mp", Py_BuildValue("i", monster->mp));
-	PyObject_SetAttrString(monster->py_obj, "x", Py_BuildValue("i", monster->tile_x));
-	PyObject_SetAttrString(monster->py_obj, "y", Py_BuildValue("i", monster->tile_y));
+	PyObject *monster;
+	int x, y;
 
-	PyObject_SetAttrString(monster->py_obj, "target_x", Py_BuildValue("i", monster->target_tile_x));
-	PyObject_SetAttrString(monster->py_obj, "target_y", Py_BuildValue("i", monster->target_tile_y));
-	PyObject_SetAttrString(monster->py_obj, "speed", Py_BuildValue("i", monster->speed));
-	monster->is_dirty = 0;
-	return 0;
-}
+	if (!PyArg_ParseTuple(args, "Oii", &monster, &x, &y)) {
+		printf("py_monster_attack():\n");
+		PyErr_Print();
+		return NULL;
+	}
 
-adv_monster *
-py_new_monster_from_object(PyObject *obj)
-{
-	adv_monster *monster;
-
-	monster = malloc(sizeof *monster);
-	memset(monster, 0, sizeof *monster);
-	monster->py_obj = obj;
-	py_update_base_object((adv_base_object*)monster);
-	py_update_monster(monster);
-
-	monster->target_tile_x = monster->tile_x;
-	monster->target_tile_y = monster->tile_y;
-	monster->queued_target_x = -1;
-	monster->queued_target_y = -1;
-	monster->xx = monster->tile_x * SPRITE_SIZE;
-	monster->yy = monster->tile_y * SPRITE_SIZE;
-
-	return monster;
+	monster_attack(monster, x, y);
+	return PyBool_FromLong(1);
 }
 
 static PyMethodDef methods[] = {
@@ -329,6 +246,7 @@ static PyMethodDef methods[] = {
     {"isVisible",		py_isVisible,		METH_VARARGS, "isVisible(monster, x1, y1): Check if monster can see position x1,y1" },
     {"monster_gotoPosition",	py_monster_gotoPosition,METH_VARARGS, "monster_gotoPosition(monster, x1, y1): monster should start walking towards (x,y) (if possible)" },
     {"monster_gotoDirection",	py_monster_gotoDirection,METH_VARARGS, "monster_gotoDirection(monster, direction): monster should start walking in direction (if possible)" },
+	{"monster_attack",		py_monster_attack, METH_VARARGS, "monster_attack(monster, x, y): attack tile @ x,y" },
 //    {"monster_gotoPosition", monster_gotoPosition, METH_VARARGS, "monster_gotoPosition" },
     {NULL, NULL, 0, NULL}
 };
@@ -403,16 +321,19 @@ py_get_tile(PyObject *py_obj)
  * on the python object. Otherwise it will do nothing
  */
 int
-py_update_object_timer(adv_base_object *obj)
+py_update_object_timer(PyObject *obj)
 {
-	if (obj->timer == -1)
+	int timer;
+
+	timer = py_getattr_int(obj, ATTR_TIMER);
+	if (timer == -1)
 		return 0;
 
-	obj->timer --;
-	if (obj->timer == 0) {
+	timer --;
+	if (timer == 0) {
 		PyObject *tmp;
 		
-		tmp = PyObject_CallMethod(obj->py_obj, "tick", NULL);
+		tmp = PyObject_CallMethod(obj, "tick", NULL);
 		if (tmp == NULL) {
 			printf("PyObject_CallMethod(tick):");
 			PyErr_Print();
@@ -420,16 +341,18 @@ py_update_object_timer(adv_base_object *obj)
 			Py_DECREF(tmp);
 		}
 
-		/* Update time-counter */
-		obj->timer = py_get_int_decref(PyObject_GetAttrString(obj->py_obj, "timer"));
 		return 1;
 	}
+
+	/* Update time-counter */
+	py_setattr_int(obj, ATTR_TIMER, timer);
 
 	return 0;
 }
 
 
-int setup_python(int argc, char *argv[])
+int
+setup_python(int argc, char *argv[])
 {
 	PyObject *adv_module;
 
@@ -453,9 +376,93 @@ int setup_python(int argc, char *argv[])
 	    main_dict, main_dict);
 	Py_DECREF(PyFileObject);
 
-	if (p == NULL)
+	if (p == NULL) {
 		PyErr_Print();
+		return -1;
+	}
+
+	/* Setup attribute objects */
+	attribute_list[ATTR_TIMER] = PyString_FromString("timer");
+	attribute_list[ATTR_HAS_DIRECTIONS] = PyString_FromString("has_directions");
+	attribute_list[ATTR_IS_DIRTY] = PyString_FromString("is_dirty");
+	attribute_list[ATTR_X] = PyString_FromString("x");
+	attribute_list[ATTR_Y] = PyString_FromString("y");
+	attribute_list[ATTR_ANIMATION] = PyString_FromString("animation");
+	attribute_list[ATTR_ANIMATION_STOPPED] =
+		PyString_FromString("animation_stopped");
+	attribute_list[ATTR_ANIMATION_MOVING] =
+		PyString_FromString("animation_moving");
+	attribute_list[ATTR_HP] = PyString_FromString("hp");
+	attribute_list[ATTR_MP] = PyString_FromString("mp");
+	attribute_list[ATTR_IN_MOVEMENT] = PyString_FromString("int_in_movement");
+	attribute_list[ATTR_DRAW_MOVEMENT] = PyString_FromString("int_draw_movement");
+	attribute_list[ATTR_DIRECTION] = PyString_FromString("direction");
+
+	attribute_list[ATTR_INT_SPEED] = PyString_FromString("int_speed");
+	attribute_list[ATTR_INT_X] = PyString_FromString("int_x");
+	attribute_list[ATTR_INT_Y] = PyString_FromString("int_y");
+	attribute_list[ATTR_INT_MOD_X] = PyString_FromString("int_mod_x");
+	attribute_list[ATTR_INT_MOD_Y] = PyString_FromString("int_mod_y");
+	attribute_list[ATTR_INT_TARGET_TILE_X] =
+		PyString_FromString("int_target_tile_x");
+	attribute_list[ATTR_INT_TARGET_TILE_Y] =
+		PyString_FromString("int_target_tile_y");
+	attribute_list[ATTR_INT_ATTACK_TARGET_X] =
+		PyString_FromString("int_attack_target_x");
+	attribute_list[ATTR_INT_ATTACK_TARGET_Y] =
+		PyString_FromString("int_attack_target_y");
 
 	Py_DECREF(p);
+	return 0;
+}
+
+int
+py_getattr_int(PyObject *obj, attribute_enum attr)
+{
+	PyObject *py_int;
+	int c_int = -1;
+
+	py_int = PyObject_GetAttr(obj, attribute_list[attr]);
+	if (!py_int || py_int == Py_None) {
+		PyErr_Print();
+	} else {
+		c_int = PyInt_AsLong(py_int);
+		Py_DECREF(py_int);
+	}
+	return c_int;
+}
+
+int
+py_getattr_list_int(PyObject *obj, attribute_enum attr, int item)
+{
+	PyObject *py_list;
+	PyObject *py_int;
+	int c_int = 0;
+
+	py_list = PyObject_GetAttr(obj, attribute_list[attr]);
+	py_int = PyList_GetItem(py_list, item);
+	if (py_int == NULL) {
+		printf("py_getattr_list_int(): \n");
+		PyErr_Print();
+	} else {
+		c_int = PyInt_AsLong(py_int);
+	}
+	Py_DECREF(py_list);
+
+	return c_int;
+}
+
+int
+py_setattr_int(PyObject *obj, attribute_enum attr, int val)
+{
+	PyObject *py_int;
+
+	py_int = PyInt_FromLong(val);
+	if (PyObject_SetAttr(obj, attribute_list[attr], py_int) == -1) {
+		printf("py_setattr_int():\n");
+		PyErr_Print();
+		return -1;
+	}
+
 	return 0;
 }

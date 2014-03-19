@@ -28,11 +28,24 @@ class Monster(object):
     target_y = 0
     hp = 100
     mp = 100
-    speed = 2
+    speed = 5
+    attack_speed = 5
     timer = -1
     is_dirty = 1
     has_directions = 1        # Monsters usually have 4 directions
     direction = adv.DIRECTION_DOWN
+
+    int_x = 0
+    int_y = 0
+    int_mod_x = 0
+    int_mod_y = 0
+    int_speed = 5
+    int_target_tile_x = 0
+    int_target_tile_y = 0
+    int_attack_target_x = 0
+    int_attack_target_y = 0
+    int_in_movement = 0
+    int_draw_movement = 0
 
     inventory = None
     spritesheet = None
@@ -45,15 +58,58 @@ class Monster(object):
             self.x = x
         if y != -1:
             self.y = y
+        self.int_x =  x * 32
+        self.int_y =  y * 32
+        self.int_target_tile_x = x
+        self.int_target_tile_y = y
+        self.int_attack_target_x = x
+        self.int_attack_target_y = y
 #        print "Created monster @ %d, %d" % (x,y)
 
     def tick(self):
+        """ Called from engine whenever self.timer has timed out """
         pass
 
     def canSeePlayer(self):
         pass
 
     def isHit(self):
+        """ Called when monster is hit and loses HP """
+        pass
+
+    def isDead(self):
+        """
+        Called when monster has a HP of 0
+
+        When this call returns, the monster will be deleted
+        """
+        pass
+
+    def getMovementSpeed(self):
+        """
+        Should always return the current movement speed
+
+        Note that this function must also factor in any
+        modifiers that is a result from  objects in the
+        monsters invetory
+
+        Is called by the engine when the is_dirty-flag
+        has been updated
+        """
+        return self.speed
+
+    def getAttackSpeed(self):
+        """
+        Should always return the current attack speed
+
+        Note that this function must also factor in any
+        modifiers that is a result from  objects in the
+        monsters invetory
+
+        Is called by the engine when the is_dirty-flag
+        has been updated
+        """
+        return self.attack_speed;
         pass
 
     def hpUpdate(self):
@@ -63,10 +119,26 @@ class Monster(object):
         pass
 
     def gotoPosition(self, x, y):
+        """
+        Try to move the monster to position (x,y)
+        If the pathfinder can't, it will start walking towards
+        the closest possible tile
+        """
         adv.monster_gotoPosition(self, x, y)
 
     def gotoDirection(self, direction):
+        """
+        Walk one step in 'direction', which is one of
+        adv.DIRECTION_DOWN, adv.DIRECTION_LEFT,
+        adv.DIRECTION_UP and adv.DIRECTION_RIGHT
+        """
         adv.monster_gotoDirection(self, direction)
+
+    def attack(self, x, y):
+        """
+        Attack tile at x,y
+        """
+        adv.monster_attack(self, x, y)
 
 class RandomAggro(object):
     def getDistanceTo(self, x, y):

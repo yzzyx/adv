@@ -8,21 +8,28 @@ class Player(monster.Monster):
     y = 8
     target_x = x
     target_y = y
-    speed = 4
-    timer = 4
+    speed = 5
+    timer = -1
     has_directions = 1
     direction = adv.DIRECTION_DOWN
 
-    spritesheet = adv.loadSpritesheet("player.png")
+    spritesheet_naked = adv.loadSpritesheet("dansken.png")
+    spritesheet_clothing = adv.loadSpritesheet("dansken_pakladd_sprites.png")
 
-    animation_stopped = [adv.createAnimation(spritesheet, 0, 1),
-                         adv.createAnimation(spritesheet, 5, 1),
-                         adv.createAnimation(spritesheet, 10, 1),
-                         adv.createAnimation(spritesheet, 15, 1)]
-    animation_moving = [adv.createAnimation(spritesheet, 0, 5),
-                        adv.createAnimation(spritesheet, 5, 5),
-                        adv.createAnimation(spritesheet, 10, 5),
-                        adv.createAnimation(spritesheet, 15, 5)]
+    animation_stopped = [adv.createAnimation(spritesheet_clothing, 0, 2),
+                         adv.createAnimation(spritesheet_clothing, 0, 2),
+                         adv.createAnimation(spritesheet_clothing, 0, 2),
+                         adv.createAnimation(spritesheet_clothing, 0, 2)]
+    animation_moving = [adv.createAnimation(spritesheet_clothing, 0, 2),
+                        adv.createAnimation(spritesheet_clothing, 0, 2),
+                        adv.createAnimation(spritesheet_clothing, 0, 2),
+                        adv.createAnimation(spritesheet_clothing, 0, 2)]
 
     def tick(self):
         pass
+
+    def isHit(self):
+        print "Player HP: %d" % self.hp
+
+    def isDead(self):
+        print "AAAARGHHH!!! IM DEAD! RIP PLAYER!"

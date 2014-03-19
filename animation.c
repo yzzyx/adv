@@ -176,8 +176,10 @@ animation_next_clip(int animation_id)
 	if (animation_id == -1) return 0;
 	a = animation_list[animation_id];
 	a->curr ++;
-	if (a->curr > a->end)
+	if (a->curr > a->end) {
 		a->curr = a->start;
+		return 1;
+	}
 	return 0;
 }
 
@@ -226,4 +228,24 @@ animation_get_spritesheet_from_anim(int animation_id)
 {
 	if (animation_id == -1) return -1;
 	return animation_list[animation_id]->spritesheet_id;
+}
+
+/*
+ * animation_play(id, x, y)
+ *
+ * Add animation to list of animations that should be
+ * played, and play it on tile (x,y)
+ */
+int
+animation_play(int animation_id, int tx, int ty)
+{
+	adv_animation_list *l;
+
+	l = malloc(sizeof *l);
+	l->id = animation_id;
+	l->x = tx;
+	l->y = ty;
+	l->next = rs.animation_list;
+	rs.animation_list = l;
+	return 0;
 }

@@ -26,7 +26,10 @@ class CrazyLumberjack(monster.Monster):
 
     def tick(self):
         player = adv.getPlayer()
-        if self.getDistanceTo(player.x, player.y) < 6:
+        distance = self.getDistanceTo(player.x, player.y)
+        if distance <= 2:
+            self.attack(player.x, player.y)
+        elif self.getDistanceTo(player.x, player.y) < 12:
             self.gotoPosition(player.x, player.y)
         else:
             dirs = range(0,4)
