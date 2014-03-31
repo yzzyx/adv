@@ -156,8 +156,6 @@ int main(int argc, char *argv[])
 		if (fps_limit())
 			fps_update();
 
-		gamestate_update();
-		update_map_monsters(m);
 		if (render_map(m)) {
 			SDL_BlitScaled(rs.screen, &screen_clip, rs.real_screen, &real_screen_clip);
 			SDL_UpdateWindowSurface(rs.win);
@@ -211,6 +209,9 @@ int main(int argc, char *argv[])
 			call_tick_map(m);
 			call_tick_map_monsters(m);
 			call_tick_map_objects(m);
+
+			gamestate_update();
+			update_map_monsters(m);
 		}
 
 		while (SDL_PollEvent(&event)) {
@@ -233,16 +234,16 @@ int main(int argc, char *argv[])
 		const uint8_t *keystate = SDL_GetKeyboardState(NULL);
 		int mx = 0 , my = 0;
 		if ((keystate[SDL_SCANCODE_UP] || keystate[SDL_SCANCODE_W]))
-			my = -1;
+			monster_goto_direction(p, DIRECTION_UP);
 
 		if ((keystate[SDL_SCANCODE_DOWN] || keystate[SDL_SCANCODE_S]))
-			my = 1;
+			monster_goto_direction(p, DIRECTION_DOWN);
 
 		if ((keystate[SDL_SCANCODE_LEFT] || keystate[SDL_SCANCODE_A]))
-			mx = -1;
+			monster_goto_direction(p, DIRECTION_LEFT);
 
 		if ((keystate[SDL_SCANCODE_RIGHT] || keystate[SDL_SCANCODE_D]))
-			mx = 1;
+			monster_goto_direction(p, DIRECTION_RIGHT);
 
 		if (mx != 0 || my != 0) {
 			monster_goto_position(p,
