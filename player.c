@@ -35,8 +35,6 @@ setup_player()
 	}
 
 	py_setattr_int(p, ATTR_DIRECTION, 0);
-	py_setattr_int(p, ATTR_X, 25);
-	py_setattr_int(p, ATTR_Y, 25);
 	py_setattr_int(p, ATTR_INT_TARGET_X, py_getattr_int(p, ATTR_X));
 	py_setattr_int(p, ATTR_INT_TARGET_Y, py_getattr_int(p, ATTR_Y));
 	return p;
@@ -67,7 +65,6 @@ monster_move(PyObject *monster)
 	y2 = active_path->y;
 	speed = py_getattr_int(monster, ATTR_INT_SPEED);
 
-	printf("%d,%d -> %d,%d\n", x1,y1,x2,y2);
 	/* monster-move-int
 	 * ----------------
 	 */
@@ -108,7 +105,6 @@ monster_move(PyObject *monster)
 
 	/* We've reached our target */
 	if (x == x2 && y == y2) {
-		printf("At target. Next: %p\n", active_path->child);
 		active_path = active_path->child;
 		py_setattr_int(monster, ATTR_INT_ACTIVE_PATH, (long)active_path);
 	}
@@ -144,10 +140,25 @@ monster_goto_direction(PyObject *p, int direction)
 	int target_x, target_y;
 	int curr_x, curr_y;
 	int speed;
+	node_t *active_path;
+	int monster_sprite_width;
+	int monster_sprite_height;
+
+	active_path = (node_t*)py_getattr_int(p, ATTR_INT_ACTIVE_PATH);
+	if (active_path) {
+		while (active_path->child) {
+			active_path = active_path->child;
+		}
+		pathfinder_free_path(active_path);
+	}
 
 	curr_x = py_getattr_int(p, ATTR_X);
 	curr_y = py_getattr_int(p, ATTR_Y);
 	speed = py_getattr_int(p, ATTR_INT_SPEED);
+
+	/* FIXME - allow monsters with different sprite-sizes */
+	monster_sprite_width = 32;
+	monster_sprite_height = 32;
 
 	switch(direction) {
 		case DIRECTION_UP: mx = 0; my = -1; break;
@@ -159,24 +170,51 @@ monster_goto_direction(PyObject *p, int direction)
 			break;
 	}
 
-	target_x = curr_x + mx * speed;
-	target_y = curr_y + my * speed;
-	if (target_x < 0) target_x = 0;
-	if (target_y < 0) target_y = 0;
-	if (target_x >= global_GS.current_map->width)
-		target_x = global_GS.current_map->width - 1;
-	if (target_y >= global_GS.current_map->height)
-		target_y = global_GS.current_map->height - 1;
+	int i;
+	target_x = curr_x;
+	target_y = curr_y;
 
-	/* Don't even try to walk where we can't */
-	if (!map_is_walkable(p, target_x, target_y)) {
-		printf("Map is not walkable there...\n");
-		return 0;
+	monster_sprite_width /= 2;
+	monster_sprite_height /= 2;
+	for (i = 0; i < speed; i ++) {
+		target_x += mx;
+		target_y += my;
+		if (target_x < monster_sprite_width) {
+			target_x = monster_sprite_width;
+			break;
+		}
+		if (target_y < monster_sprite_height) {
+			target_y = monster_sprite_height;
+			break;
+		}
+		if (target_x >= global_GS.current_map->width - monster_sprite_width) {
+			target_x = global_GS.current_map->width - monster_sprite_width - 1;
+			break;
+		}
+		if (target_y >= global_GS.current_map->height - monster_sprite_height) {
+			target_y = global_GS.current_map->height - monster_sprite_height - 1;
+			break;
+		}
+
+		/* Don't even try to walk where we can't */
+		if (global_GS.current_map->raytrace_map[target_x + target_y *
+		    global_GS.current_map->width]) {
+			target_x -= mx;
+			target_y -= my;
+			break;
+		}
 	}
 
-	py_setattr_int(p, ATTR_INT_TARGET_X, target_x);
-	py_setattr_int(p, ATTR_INT_TARGET_Y, target_y);
-	py_setattr_int(p, ATTR_DIRECTION, direction);
+	/*
+	 * Create a path to this point
+	 */
+	active_path = calloc(1,sizeof(*active_path));
+	active_path->child = NULL;
+	active_path->parent = NULL;
+	active_path->x = target_x;
+	active_path->y = target_y;
+
+	py_setattr_int(p, ATTR_INT_ACTIVE_PATH, (long)active_path);
 	py_setattr_int(p, ATTR_IN_MOVEMENT, 1);
 
 	return 1;
@@ -241,6 +279,7 @@ monster_goto_position(PyObject *monster, int x, int y)
 		active_path->y = y;
 
 		py_setattr_int(monster, ATTR_INT_ACTIVE_PATH, (long)active_path);
+		py_setattr_int(monster, ATTR_IN_MOVEMENT, 1);
 		return 0;
 	}
 
@@ -268,6 +307,7 @@ monster_goto_position(PyObject *monster, int x, int y)
 	/* FIXME - prune path */
 
 	py_setattr_int(monster, ATTR_INT_ACTIVE_PATH, (long)active_path);
+	py_setattr_int(monster, ATTR_IN_MOVEMENT, 1);
 	return 0;
 }
 
