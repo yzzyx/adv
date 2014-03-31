@@ -59,3 +59,26 @@ int setup_sdl(int window_size_x, int window_size_y)
 	printf("rs.screen in setup_sdl(): %p\n", rs.screen);
 	return 0;
 }
+
+
+int sdl_resize_event(SDL_Event *ev)
+{
+
+	int xpos, ypos;
+
+	SDL_GetWindowPosition(rs.win, &xpos, &ypos);
+
+	SDL_DestroyWindow(rs.win);
+	rs.win = SDL_CreateWindow("adv",
+	    xpos, ypos,
+	    ev->window.data1, ev->window.data2,
+	    SDL_WINDOW_SHOWN);
+	if (rs.win == NULL) {
+		return -1;
+	}
+
+	if ((rs.screen = SDL_GetWindowSurface(rs.win)) == NULL) {
+		return -1;
+	}
+	return 0;
+}
