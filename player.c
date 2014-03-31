@@ -68,7 +68,7 @@ monster_move(PyObject *monster)
 	/* monster-move-int
 	 * ----------------
 	 */
-	
+
 	int dx = 0, dy = 0;
 	int sx, sy;
 	int err;
@@ -289,7 +289,7 @@ monster_goto_position(PyObject *monster, int x, int y)
 	 */
 	active_path = pathfinder(global_GS.current_map->pathfinder, monster,
 	    monster_x / SPRITE_SIZE, monster_y / SPRITE_SIZE,
-	    x / SPRITE_SIZE, y / SPRITE_SIZE); 
+	    x / SPRITE_SIZE, y / SPRITE_SIZE);
 
 	if (!active_path) {
 		printf("No path from %d,%d to %d,%d\n",
@@ -431,7 +431,7 @@ monster_attack(PyObject *m, int x, int y)
 					monster->next->prev = monster->prev;
 				if (global_GS.current_map->monsters == monster)
 					global_GS.current_map->monsters = (adv_monster*)monster->next;
-				
+
 				Py_DECREF(monster->py_obj);
 				free(monster);
 				break;

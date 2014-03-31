@@ -18,13 +18,13 @@ struct fps_data
 	float max_frame_ticks;
 	uint32_t last_second_ticks;
 	int frame_count;
-	
+
 	uint32_t last_frame_ticks;
 	uint32_t target_ticks;
 }fps_data;
 
 void fps_init()
-{ 
+{
 	fps_data.max_frame_ticks=(1000.0/(float)FPS_MAX)+0.00001;
 	fps_data.frame_count=0;
 	fps_data.last_second_ticks=SDL_GetTicks();
@@ -36,7 +36,7 @@ int fps_limit()
 	fps_data.target_ticks = fps_data.last_second_ticks +
 	    (uint32_t)(fps_data.frame_count * fps_data.max_frame_ticks);
 	fps_data.curr_ticks = SDL_GetTicks();
-	
+
 	if (fps_data.curr_ticks < fps_data.target_ticks) {
 		SDL_Delay(fps_data.target_ticks - fps_data.curr_ticks);
 		fps_data.curr_ticks = SDL_GetTicks();
@@ -91,12 +91,12 @@ int main(int argc, char *argv[])
 {
 	PyObject *p;
 	adv_map *m;
-	
+
 	if (setup_sdl(1280,960) == -1) {
 		printf("setup_sdl(): -1\n");
 		return -1;
 	}
-	
+
 	animation_init();
 	setup_python(argc, argv);
 
@@ -209,7 +209,6 @@ int main(int argc, char *argv[])
 			call_tick_map(m);
 			call_tick_map_monsters(m);
 			call_tick_map_objects(m);
-
 			gamestate_update();
 			update_map_monsters(m);
 		}
@@ -255,7 +254,7 @@ int main(int argc, char *argv[])
 		if (keystate[SDL_SCANCODE_M]) {
 			monster_goto_position(main_player, 5*32, 5*32);
 		}
-		
+
 		monster_move(p);
 	}
 	SDL_Quit();

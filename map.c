@@ -54,7 +54,7 @@ get_map(const char *map_name)
 		printf("callmethod(generate):");
 		PyErr_Print();
 		return NULL;
-	} else 
+	} else
 		Py_DECREF(tmp);
 
 	m = malloc(sizeof(adv_map));
@@ -117,7 +117,7 @@ get_map(const char *map_name)
 					y * SPRITE_SIZE - SPRITE_SIZE/2 + 1,
 					SPRITE_SIZE + SPRITE_SIZE - 1,
 					SPRITE_SIZE + SPRITE_SIZE - 1,
-					m->width); 
+					m->width);
 			}
 		}
 	}
@@ -138,7 +138,7 @@ get_map(const char *map_name)
 }
 
 
-static int 
+static int
 map_to_screen_x(adv_map *m, int x)
 {
 	int sx;
@@ -166,7 +166,7 @@ map_pos_is_visible(adv_map *m, adv_monster *p, int map_x, int map_y)
 	int x,y;
 	int sx, sy;
 	int err;
-	
+
 	dx = abs(p->tile_x-map_x);
 	dy = abs(p->tile_y-map_y);
 	if (map_x < p->tile_x) sx = 1; else sx = -1;
@@ -230,7 +230,6 @@ map_pos_is_visible2(adv_map *m, adv_monster *p, int map_x, int map_y)
 	int sx, sy;
 	int err;
 	int px, py;
-	
 
 	px = p->xx + 16;
 	py = p->yy + 16;
@@ -247,7 +246,7 @@ map_pos_is_visible2(adv_map *m, adv_monster *p, int map_x, int map_y)
 		tx = x / SPRITE_SIZE;
 		ty = y / SPRITE_SIZE;
 		if (m->tiles[tx+ty*m->tile_width]->visibility == 0) {
-			if (!(tx == map_x / SPRITE_SIZE && 
+			if (!(tx == map_x / SPRITE_SIZE &&
 				ty == map_y / SPRITE_SIZE))
 				return 0;
 		}
@@ -511,11 +510,11 @@ map_get_position_from_screen(int screen_x, int screen_y, int *x, int *y)
 	if (start_x < 0) start_x = 0;
 	if (start_y < 0) start_y = 0;
 
-   *x = (screen_x*
-	   ((float)rs.screen->w / rs.real_screen->w)); // + (xx - start_x));
-		
+	*x = (screen_x*
+		((float)rs.screen->w / rs.real_screen->w));
+
 	*y = (screen_y*
-		((float)rs.screen->h / rs.real_screen->h));// + (yy - start_y));
+		((float)rs.screen->h / rs.real_screen->h));
 	return 0;
 }
 
@@ -594,7 +593,7 @@ map_is_walkable(PyObject *m, int x, int y)
 	for (tx = x/SPRITE_SIZE; tx <= x/SPRITE_SIZE +  1; tx ++) {
 		for (ty = y/SPRITE_SIZE; ty <= y/SPRITE_SIZE + 1; ty ++) {
 
-			if (tx < 0 || ty < 0 || 
+			if (tx < 0 || ty < 0 ||
 				tx >= map->tile_width || ty >= map->tile_height)
 				continue;
 			if (map->tiles[tx+ty*map->tile_width]->walkable == 0) {

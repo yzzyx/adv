@@ -133,7 +133,7 @@ animation_render_sprite_clipped(int spritesheet, int spriteid, int x, int y, int
 	    sizeof(SDL_Rect));
 	clip.w = w;
 	clip.h = h;
-	
+
 	return SDL_BlitSurface(spritesheet_list[spritesheet]->img, &clip, surface, &offset);
 }
 
@@ -187,7 +187,7 @@ int
 animation_render(int animation_id, int x, int y)
 {
 	struct t_animation *a;
-	
+
 	if (animation_id == -1) return 0;
 	a = animation_list[animation_id];
 	return animation_render_sprite(a->spritesheet_id, a->curr, x, y);

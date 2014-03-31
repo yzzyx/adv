@@ -261,7 +261,7 @@ py_get_int(PyObject *obj)
 		PyErr_Print();
 		return 0;
 	}
-	
+
 	if (obj == Py_None)
 		return 0;
 
@@ -277,7 +277,7 @@ py_get_int_decref(PyObject *obj)
 		PyErr_Print();
 		return 0;
 	}
-	
+
 	if (obj == Py_None)
 		return 0;
 
@@ -332,7 +332,7 @@ py_update_object_timer(PyObject *obj)
 	timer --;
 	if (timer == 0) {
 		PyObject *tmp;
-		
+
 		tmp = PyObject_CallMethod(obj, "tick", NULL);
 		if (tmp == NULL) {
 			printf("PyObject_CallMethod(tick):");
@@ -362,7 +362,7 @@ setup_python(int argc, char *argv[])
 #endif
 
 	Py_Initialize();
-	
+
 	Py_InitModule("_adv", methods);
 	adv_module = PyImport_ImportModule("_adv");
 	if (adv_module == NULL) { PyErr_Print(); return -1; }
